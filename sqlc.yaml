@@ -1,0 +1,11 @@
+version: 1
+packages:
+    - name: "db"
+      engine: "postgresql"
+      path: "./db/sqlc"
+      schema: "./db/migration/"
+      queries: "./db/query/"
+      emit_json_tags: true
+      emit_interface: false
+      emit_prepared_queries : false
+      emit_exact_table_names: false
