@@ -8,6 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func validateEntryBasic(t *testing.T, entry Entry) {
+	require.NotEmpty(t, entry)
+	require.NotZero(t, entry.ID)
+	require.NotZero(t, entry.CreatedAt)
+}
+
 func createRandomEntry(t *testing.T, account Account) Entry {
 	arg := CreateEntryParams{
 		AccountID: account.ID,
@@ -16,13 +22,11 @@ func createRandomEntry(t *testing.T, account Account) Entry {
 
 	entry, err := testQueries.CreateEntry(context.Background(), arg)
 	require.NoError(t, err)
-	require.NotEmpty(t, entry)
 
 	// Check entry values
+	validateEntryBasic(t, entry)
 	require.Equal(t, entry.AccountID, arg.AccountID)
 	require.Equal(t, entry.Amount, arg.Amount)
-	require.NotZero(t, entry.ID)
-	require.NotZero(t, entry.CreatedAt)
 
 	return entry
 }
@@ -36,8 +40,8 @@ func TestGetEntry(t *testing.T) {
 
 	entry2, err := testQueries.GetEntry(context.Background(), entry1.ID)
 	require.NoError(t, err)
-	require.NotEmpty(t, entry2)
 
+	validateEntryBasic(t, entry2)
 	require.Equal(t, entry1.ID, entry2.ID)
 	require.Equal(t, entry1.AccountID, entry2.AccountID)
 	require.Equal(t, entry1.Amount, entry2.Amount)
@@ -61,6 +65,6 @@ func TestListEntry(t *testing.T) {
 	require.Len(t, entries, 5)
 
 	for _, Entry := range entries {
-		require.NotEmpty(t, Entry)
+		validateEntryBasic(t, Entry)
 	}
 }

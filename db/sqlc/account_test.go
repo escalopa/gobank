@@ -10,6 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func validateAccountBasic(t *testing.T, account Account) {
+	require.NotEmpty(t, account)
+	require.NotZero(t, account.ID)
+	require.NotZero(t, account.CreatedAt)
+}
+
 func createRandomAccount(t *testing.T) Account {
 	arg := CreateAccountParams{
 		Owner:    utils.RandomOwner(),
@@ -19,14 +25,12 @@ func createRandomAccount(t *testing.T) Account {
 
 	account, err := testQueries.CreateAccount(context.Background(), arg)
 	require.NoError(t, err)
-	require.NotEmpty(t, account)
 
 	// Check account values
+	validateAccountBasic(t, account)
 	require.Equal(t, account.Owner, arg.Owner)
 	require.Equal(t, account.Balance, arg.Balance)
 	require.Equal(t, account.Currency, arg.Currency)
-	require.NotZero(t, account.ID)
-	require.NotZero(t, account.CreatedAt)
 
 	return account
 }
@@ -39,8 +43,8 @@ func TestGetAccount(t *testing.T) {
 	account1 := createRandomAccount(t)
 	account2, err := testQueries.GetAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
-	require.NotEmpty(t, account2)
 
+	validateAccountBasic(t, account2)
 	require.Equal(t, account1.ID, account2.ID)
 	require.Equal(t, account1.Owner, account2.Owner)
 	require.Equal(t, account1.Balance, account2.Balance)
@@ -51,18 +55,18 @@ func TestGetAccount(t *testing.T) {
 func TestUpdateAccount(t *testing.T) {
 	account1 := createRandomAccount(t)
 
-	arg := UpdateAccountParams{
-		ID:      account1.ID,
-		Balance: utils.RandomMoney(),
+	arg := UpdateAccountBalanceParams{
+		ID:     account1.ID,
+		Amount: utils.RandomMoney(),
 	}
 
-	account2, err := testQueries.UpdateAccount(context.Background(), arg)
+	account2, err := testQueries.UpdateAccountBalance(context.Background(), arg)
 	require.NoError(t, err)
-	require.NotEmpty(t, account2)
 
+	validateAccountBasic(t, account2)
 	require.Equal(t, account1.ID, account2.ID)
 	require.Equal(t, account1.Owner, account2.Owner)
-	require.Equal(t, arg.Balance, account2.Balance)
+	require.Equal(t, account1.Balance+arg.Amount, account2.Balance)
 	require.Equal(t, account1.Currency, account2.Currency)
 	require.WithinDuration(t, account1.CreatedAt, account2.CreatedAt, time.Second)
 }
@@ -81,8 +85,8 @@ func TestListAccount(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, accounts, 5)
 
-	for _, Account := range accounts {
-		require.NotEmpty(t, Account)
+	for _, account := range accounts {
+		validateAccountBasic(t, account)
 	}
 }
 

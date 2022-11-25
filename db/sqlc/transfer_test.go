@@ -8,6 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func validateTransferBasic(t *testing.T, transfer Transfer) {
+	require.NotEmpty(t, transfer)
+	require.NotZero(t, transfer.ID)
+	require.NotZero(t, transfer.CreatedAt)
+}
+
 func createRandomTransfer(t *testing.T, account1, account2 Account) Transfer {
 	arg := CreateTransferParams{
 		FromAccountID: account1.ID,
@@ -17,14 +23,12 @@ func createRandomTransfer(t *testing.T, account1, account2 Account) Transfer {
 
 	transfer, err := testQueries.CreateTransfer(context.Background(), arg)
 	require.NoError(t, err)
-	require.NotEmpty(t, transfer)
 
 	// Check transfer values
+	validateTransferBasic(t, transfer)
 	require.Equal(t, transfer.FromAccountID, arg.FromAccountID)
 	require.Equal(t, transfer.ToAccountID, arg.ToAccountID)
 	require.Equal(t, transfer.Amount, arg.Amount)
-	require.NotZero(t, transfer.ID)
-	require.NotZero(t, transfer.CreatedAt)
 
 	return transfer
 }
@@ -40,8 +44,8 @@ func TestGetTransfer(t *testing.T) {
 
 	transfer2, err := testQueries.GetTransfer(context.Background(), transfer1.ID)
 	require.NoError(t, err)
-	require.NotEmpty(t, transfer2)
 
+	validateTransferBasic(t, transfer2)
 	require.Equal(t, transfer1.ID, transfer2.ID)
 	require.Equal(t, transfer1.FromAccountID, transfer2.FromAccountID)
 	require.Equal(t, transfer1.ToAccountID, transfer2.ToAccountID)
@@ -68,6 +72,6 @@ func TestListTransfer(t *testing.T) {
 	require.Len(t, transfers, 5)
 
 	for _, transfer := range transfers {
-		require.NotEmpty(t, transfer)
+		validateTransferBasic(t, transfer)
 	}
 }
