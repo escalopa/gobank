@@ -14,25 +14,28 @@ import (
 )
 
 var testQueries *Queries
+var testDB *sql.DB
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
 func TestMain(m *testing.M) {
+	var err error
+	var config utils.Config
 	// Load config
-	config, err := utils.LoadConfig("../..")
+	config, err = utils.LoadConfig("../..")
 	if err != nil {
 		log.Fatal("cannot load configuration for testing", err)
 	}
 
 	// Connect to db
-	conn, err := sql.Open(config.DB.Driver, config.DB.ConnectionString)
+	testDB, err = sql.Open(config.DB.Driver, config.DB.ConnectionString)
 	if err != nil {
 		log.Fatal("cannot connect to db: ", err)
 	}
 
 	// Set connection & run tests
-	testQueries = New(conn)
+	testQueries = New(testDB)
 	os.Exit(m.Run())
 }
