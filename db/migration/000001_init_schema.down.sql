@@ -1,11 +1,5 @@
-DROP TABLE "entries";
-DROP TABLE "transfers";
-DROP TABLE "accounts";
-DROP TABLE "users";
+DROP TABLE IF EXISTS entries;
 
-DROP TYPE  currency;
+DROP TABLE IF EXISTS transfers;
 
-DROP SEQUENCE IF EXISTS "accounts_id_seq";
-DROP SEQUENCE IF EXISTS "entries_id_seq";
-DROP SEQUENCE IF EXISTS "transfers_id_seq";
-DROP SEQUENCE IF EXISTS "users_id_seq";
+DROP TABLE IF EXISTS accounts;

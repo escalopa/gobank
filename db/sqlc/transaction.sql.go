@@ -7,13 +7,18 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createTransfer = `-- name: CreateTransfer :one
-INSERT INTO "transfers" (from_account_id, to_account_id, amount)
+
+INSERT INTO
+    transfers (
+        from_account_id,
+        to_account_id,
+        amount
+    )
 VALUES ($1, $2, $3)
-RETURNING id, from_account_id, to_account_id, amount, reverted, created_at
+RETURNING id, from_account_id, to_account_id, amount, created_at
 `
 
 type CreateTransferParams struct {
@@ -30,56 +35,14 @@ func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) 
 		&i.FromAccountID,
 		&i.ToAccountID,
 		&i.Amount,
-		&i.Reverted,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const deleteTransfer = `-- name: DeleteTransfer :one
-UPDATE "transfers"
-SET reverted = true
-WHERE id = $1 RETURNING id
-`
-
-func (q *Queries) DeleteTransfer(ctx context.Context, id int64) (int64, error) {
-	row := q.db.QueryRowContext(ctx, deleteTransfer, id)
-	err := row.Scan(&id)
-	return id, err
-}
-
-const getAccountTransfer = `-- name: GetAccountTransfer :one
-SELECT id, from_account_id, to_account_id, amount, reverted, created_at
-FROM "transfers"
-WHERE from_account_id = $1
-LIMIT $2 OFFSET $3
-`
-
-type GetAccountTransferParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	Limit         int32 `json:"limit"`
-	Offset        int32 `json:"offset"`
-}
-
-func (q *Queries) GetAccountTransfer(ctx context.Context, arg GetAccountTransferParams) (Transfer, error) {
-	row := q.db.QueryRowContext(ctx, getAccountTransfer, arg.FromAccountID, arg.Limit, arg.Offset)
-	var i Transfer
-	err := row.Scan(
-		&i.ID,
-		&i.FromAccountID,
-		&i.ToAccountID,
-		&i.Amount,
-		&i.Reverted,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getTransfer = `-- name: GetTransfer :one
-SELECT id, from_account_id, to_account_id, amount, reverted, created_at
-FROM "transfers"
-WHERE id = $1
-LIMIT 1
+
+SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
@@ -90,187 +53,37 @@ func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
 		&i.FromAccountID,
 		&i.ToAccountID,
 		&i.Amount,
-		&i.Reverted,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
-const getUserReceivedTransfers = `-- name: GetUserReceivedTransfers :many
-SELECT a.id, a.currency, from_account_id, to_account_id, amount, t.created_at
-FROM "transfers" t
-         JOIN accounts a on a.id = t.to_account_id AND t.reverted = false
-WHERE a.user_id = $1 ORDER BY t.id
-LIMIT $2 OFFSET $3
-`
-
-type GetUserReceivedTransfersParams struct {
-	UserID int64 `json:"user_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-type GetUserReceivedTransfersRow struct {
-	ID            int64        `json:"id"`
-	Currency      Currency     `json:"currency"`
-	FromAccountID int64        `json:"from_account_id"`
-	ToAccountID   int64        `json:"to_account_id"`
-	Amount        int64        `json:"amount"`
-	CreatedAt     sql.NullTime `json:"created_at"`
-}
-
-func (q *Queries) GetUserReceivedTransfers(ctx context.Context, arg GetUserReceivedTransfersParams) ([]GetUserReceivedTransfersRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUserReceivedTransfers, arg.UserID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetUserReceivedTransfersRow
-	for rows.Next() {
-		var i GetUserReceivedTransfersRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Currency,
-			&i.FromAccountID,
-			&i.ToAccountID,
-			&i.Amount,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getUserSentTransfers = `-- name: GetUserSentTransfers :many
-SELECT a.id, a.currency, from_account_id, to_account_id, amount, t.created_at
-FROM "transfers" t
-         JOIN accounts a on a.id = t.from_account_id  AND t.reverted = false
-WHERE a.user_id = $1
-LIMIT $2 OFFSET $3
-`
-
-type GetUserSentTransfersParams struct {
-	UserID int64 `json:"user_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-type GetUserSentTransfersRow struct {
-	ID            int64        `json:"id"`
-	Currency      Currency     `json:"currency"`
-	FromAccountID int64        `json:"from_account_id"`
-	ToAccountID   int64        `json:"to_account_id"`
-	Amount        int64        `json:"amount"`
-	CreatedAt     sql.NullTime `json:"created_at"`
-}
-
-func (q *Queries) GetUserSentTransfers(ctx context.Context, arg GetUserSentTransfersParams) ([]GetUserSentTransfersRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUserSentTransfers, arg.UserID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetUserSentTransfersRow
-	for rows.Next() {
-		var i GetUserSentTransfersRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Currency,
-			&i.FromAccountID,
-			&i.ToAccountID,
-			&i.Amount,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getUserTransfers = `-- name: GetUserTransfers :many
-SELECT a.id, a.currency, from_account_id, to_account_id, amount, reverted, t.created_at
-FROM "transfers" t
-         JOIN accounts a on a.id = t.from_account_id  AND a.id = t.to_account_id
-WHERE a.user_id = $1
-LIMIT $2 OFFSET $3
-`
-
-type GetUserTransfersParams struct {
-	UserID int64 `json:"user_id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-type GetUserTransfersRow struct {
-	ID            int64        `json:"id"`
-	Currency      Currency     `json:"currency"`
-	FromAccountID int64        `json:"from_account_id"`
-	ToAccountID   int64        `json:"to_account_id"`
-	Amount        int64        `json:"amount"`
-	Reverted      sql.NullBool `json:"reverted"`
-	CreatedAt     sql.NullTime `json:"created_at"`
-}
-
-func (q *Queries) GetUserTransfers(ctx context.Context, arg GetUserTransfersParams) ([]GetUserTransfersRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUserTransfers, arg.UserID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetUserTransfersRow
-	for rows.Next() {
-		var i GetUserTransfersRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Currency,
-			&i.FromAccountID,
-			&i.ToAccountID,
-			&i.Amount,
-			&i.Reverted,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listTransfers = `-- name: ListTransfers :many
-SELECT id, from_account_id, to_account_id, amount, reverted, created_at
-FROM "transfers"
+
+SELECT id, from_account_id, to_account_id, amount, created_at
+FROM transfers
+WHERE
+    from_account_id = $1
+    OR to_account_id = $2
 ORDER BY id
-LIMIT $1 OFFSET $2
+LIMIT $3
+OFFSET $4
 `
 
 type ListTransfersParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	FromAccountID int64 `json:"from_account_id"`
+	ToAccountID   int64 `json:"to_account_id"`
+	Limit         int32 `json:"limit"`
+	Offset        int32 `json:"offset"`
 }
 
 func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error) {
-	rows, err := q.db.QueryContext(ctx, listTransfers, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listTransfers,
+		arg.FromAccountID,
+		arg.ToAccountID,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +96,6 @@ func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([
 			&i.FromAccountID,
 			&i.ToAccountID,
 			&i.Amount,
-			&i.Reverted,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
