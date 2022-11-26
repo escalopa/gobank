@@ -10,7 +10,7 @@ type DBConfig struct {
 }
 
 type AppConfig struct {
-	Port int `mapstructure:"port"`
+	Port string `mapstructure:"port"`
 }
 
 type Config struct {
