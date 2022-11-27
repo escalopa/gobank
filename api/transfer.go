@@ -8,6 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type transferResponse struct {
+	ID          int64      `json:"id"`
+	FromAccount db.Account `json:"from_account"`
+	FromEntry   db.Entry   `json:"from_entry"`
+	ToAccountID int64      `json:"to_account_id"`
+	Amount      int64      `json:"amount"`
+}
+
 type createTransferReq struct {
 	FromAccountID int64 `json:"from_account_id" binding:"required,min=1"`
 	ToAccountID   int64 `json:"to_account_id" binding:"required,min=1"`
@@ -46,7 +54,8 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, result)
+	res := server.fromTransferTxToTransferResponse(result)
+	ctx.JSON(http.StatusOK, res)
 
 }
 

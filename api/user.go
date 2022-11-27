@@ -2,13 +2,21 @@ package api
 
 import (
 	"fmt"
-	"net/http"
-
 	db "github.com/escalopa/go-bank/db/sqlc"
 	"github.com/escalopa/go-bank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
+	"net/http"
+	"time"
 )
+
+type userResponse struct {
+	Username          string    `json:"username"`
+	FullName          string    `json:"full_name"`
+	Email             string    `json:"email"`
+	CreatedAt         time.Time `json:"created_at"`
+	PasswordChangedAt time.Time `json:"password_changed_at"`
+}
 
 type createUserReq struct {
 	Username        string `json:"username"  binding:"required,min=6,max=16,alphanum"`
@@ -50,7 +58,8 @@ func (server *Server) createUser(ctx *gin.Context) {
 		}
 	}
 
-	ctx.JSON(http.StatusCreated, user)
+	res := server.fromUserToUserResponse(user)
+	ctx.JSON(http.StatusCreated, res)
 }
 
 type getUserReq struct {
@@ -70,5 +79,6 @@ func (server *Server) getUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	res := server.fromUserToUserResponse(user)
+	ctx.JSON(http.StatusOK, res)
 }
