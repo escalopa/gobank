@@ -17,6 +17,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	var req createAccountReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
 	}
 
 	account, err := server.store.CreateAccount(ctx, db.CreateAccountParams{
@@ -27,6 +28,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, account)
