@@ -54,7 +54,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 
 	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
-		server.handleGetError(ctx, err)
+		server.handleGetDataBaseError(ctx, err)
 		return
 	}
 

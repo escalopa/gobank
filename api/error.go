@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (server *Server) handleGetError(ctx *gin.Context, err error) {
+func (server *Server) handleGetDataBaseError(ctx *gin.Context, err error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))

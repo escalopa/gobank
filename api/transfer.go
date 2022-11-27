@@ -54,13 +54,13 @@ func (server *Server) validateTransferCurrency(ctx *gin.Context, accountID1, acc
 
 	account1, err := server.store.GetAccount(ctx, accountID1)
 	if err != nil {
-		server.handleGetError(ctx, err)
+		server.handleGetDataBaseError(ctx, err)
 		return false
 	}
 
 	account2, err := server.store.GetAccount(ctx, accountID2)
 	if err != nil {
-		server.handleGetError(ctx, err)
+		server.handleGetDataBaseError(ctx, err)
 		return false
 	}
 

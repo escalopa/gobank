@@ -19,9 +19,12 @@ func validateUserBasic(t *testing.T, user User) {
 }
 
 func createRandomUser(t *testing.T) User {
+	hashPassword, err := util.GenerateHashPassword(util.RandomString(10))
+	require.NoError(t, err)
+
 	user1 := CreateUserParams{
 		Username:       util.RandomOwner(),
-		HashedPassword: util.RandomString(10),
+		HashedPassword: hashPassword,
 		FullName:       util.RandomOwner(),
 		Email:          util.RandomEmail(),
 	}
