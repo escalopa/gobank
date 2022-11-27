@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/escalopa/go-bank/utils"
+	"github.com/escalopa/go-bank/util"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,9 +18,9 @@ func validateAccountBasic(t *testing.T, account Account) {
 
 func createRandomAccount(t *testing.T) Account {
 	arg := CreateAccountParams{
-		Owner:    utils.RandomOwner(),
-		Balance:  utils.RandomMoney(),
-		Currency: utils.RandomCurrency(),
+		Owner:    util.RandomOwner(),
+		Balance:  util.RandomMoney(),
+		Currency: util.RandomCurrency(),
 	}
 
 	account, err := testQueries.CreateAccount(context.Background(), arg)
@@ -57,7 +57,7 @@ func TestUpdateAccount(t *testing.T) {
 
 	arg := UpdateAccountBalanceParams{
 		ID:     account1.ID,
-		Amount: utils.RandomMoney(),
+		Amount: util.RandomMoney(),
 	}
 
 	account2, err := testQueries.UpdateAccountBalance(context.Background(), arg)
