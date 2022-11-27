@@ -266,7 +266,7 @@ func TestListAccount(t *testing.T) {
 
 func createRandomAccount() db.Account {
 	return db.Account{
-		ID:       util.RandomInteger(1, 100),
+		ID:       util.RandomInteger(1, 1000),
 		Owner:    util.RandomOwner(),
 		Balance:  util.RandomMoney(),
 		Currency: util.RandomCurrency(),

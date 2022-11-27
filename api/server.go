@@ -3,6 +3,8 @@ package api
 import (
 	db "github.com/escalopa/go-bank/db/sqlc"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 type Server struct {
@@ -15,11 +17,18 @@ func NewServer(store db.Store) *Server {
 
 	router := gin.Default()
 
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("currency", validCurrency)
+	}
+
 	// Account Routing
 	router.POST("/api/accounts", server.createAccount)
 	router.GET("/api/accounts/:id", server.getAccount)
 	router.GET("/api/accounts", server.listAccounts)
 	router.DELETE("/api/accounts/:id", server.deleteAccounts)
+
+	// Transfer Routing
+	router.POST("/api/transfers", server.createTransfer)
 
 	server.router = router
 	return server

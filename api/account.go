@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"net/http"
 
 	db "github.com/escalopa/go-bank/db/sqlc"
@@ -10,7 +9,7 @@ import (
 
 type createAccountReq struct {
 	Owner    string `json:"owner"  binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EGP RUB"`
+	Currency string `json:"currency" binding:"required,currency"`
 }
 
 func (server *Server) createAccount(ctx *gin.Context) {
@@ -47,12 +46,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 
 	account, err := server.store.GetAccount(ctx, req.ID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		server.handleGetError(ctx, err)
 		return
 	}
 
