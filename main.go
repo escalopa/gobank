@@ -6,12 +6,12 @@ import (
 
 	"github.com/escalopa/go-bank/api"
 	db "github.com/escalopa/go-bank/db/sqlc"
-	"github.com/escalopa/go-bank/utils"
+	"github.com/escalopa/go-bank/util"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	config, err := utils.LoadConfig(".")
+	config, err := util.LoadConfig(".")
 	if err != nil {
 		log.Fatal("cannot read configuration", err)
 	}

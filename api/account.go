@@ -40,6 +40,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	var req getAccountReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
 	}
 
 	account, err := server.store.GetAccount(ctx, req.ID)
