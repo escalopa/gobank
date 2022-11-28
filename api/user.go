@@ -2,12 +2,13 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	db "github.com/escalopa/go-bank/db/sqlc"
 	"github.com/escalopa/go-bank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
-	"net/http"
-	"time"
 )
 
 type userResponse struct {
@@ -53,9 +54,9 @@ func (server *Server) createUser(ctx *gin.Context) {
 				ctx.JSON(http.StatusForbidden, errorResponse(err))
 				return
 			}
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-			return
 		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
 
 	res := server.fromUserToUserResponse(user)

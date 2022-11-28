@@ -38,6 +38,11 @@ func createRandomUser(t *testing.T) User {
 	require.Equal(t, user1.HashedPassword, user2.HashedPassword)
 	require.Equal(t, user1.FullName, user2.FullName)
 	require.Equal(t, user1.Email, user2.Email)
+
+	user3, err := testQueries.CreateUser(context.Background(), user1)
+	require.Empty(t, user3)
+	require.Error(t, err)
+
 	return user2
 }
 func TestCreateUser(t *testing.T) {

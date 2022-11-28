@@ -119,14 +119,12 @@ func TestCreateTransfer(t *testing.T) {
 
 		t.Run(tci.name, func(t *testing.T) {
 
-			var buf bytes.Buffer
-			err := json.NewEncoder(&buf).Encode(tci.transferArg)
+			data, err := json.Marshal(tci.transferArg)
 			require.NoError(t, err)
 
 			url := "/api/transfers"
-			reader := bytes.NewReader(buf.Bytes())
 
-			req, err := http.NewRequest(http.MethodPost, url, reader)
+			req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
 			runServerTest(t, tci, req)
