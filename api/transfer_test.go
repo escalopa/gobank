@@ -25,7 +25,7 @@ func TestCreateTransfer(t *testing.T) {
 		Amount:        amount,
 	}
 
-	tc := []struct {
+	testCases := []struct {
 		name          string
 		transferArg   createTransferReq
 		FromAccountID int64
@@ -114,12 +114,12 @@ func TestCreateTransfer(t *testing.T) {
 		},
 	}
 
-	for i := 0; i < len(tc); i++ {
-		tci := tc[i]
+	for i := 0; i < len(testCases); i++ {
+		tc := testCases[i]
 
-		t.Run(tci.name, func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 
-			data, err := json.Marshal(tci.transferArg)
+			data, err := json.Marshal(tc.transferArg)
 			require.NoError(t, err)
 
 			url := "/api/transfers"
@@ -127,7 +127,7 @@ func TestCreateTransfer(t *testing.T) {
 			req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
-			runServerTest(t, tci, req)
+			runServerTest(t, tc, req)
 		})
 	}
 }

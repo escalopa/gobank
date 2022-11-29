@@ -47,18 +47,22 @@ func (server *Server) setupValidator() {
 func (server *Server) setupRouter() {
 	router := gin.Default()
 
-	// Account Routing
-	router.POST("/api/accounts", server.createAccount)
-	router.GET("/api/accounts/:id", server.getAccount)
-	router.GET("/api/accounts", server.listAccounts)
-	router.DELETE("/api/accounts/:id", server.deleteAccounts)
+	authGroup := router.Group("/", authMiddleware(server.tokenMaker))
 
-	// Transfer Routing
-	router.POST("/api/transfers", server.createTransfer)
+	{
+		// Account Routing
+		authGroup.POST("/api/accounts", server.createAccount)
+		authGroup.GET("/api/accounts/:id", server.getAccount)
+		authGroup.GET("/api/accounts", server.listAccounts)
+		authGroup.DELETE("/api/accounts/:id", server.deleteAccounts)
 
-	// User Routing
-	router.POST("api/users", server.createUser)
-	router.GET("api/users/:username", server.getUser)
+		// Transfer Routing
+		authGroup.POST("/api/transfers", server.createTransfer)
+
+		// User Routing
+		authGroup.POST("api/users", server.createUser)
+		authGroup.GET("api/users/:username", server.getUser)
+	}
 
 	// Authenticate Routing
 	router.POST("api/users/login", server.loginUser)

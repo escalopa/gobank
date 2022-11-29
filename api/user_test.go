@@ -29,7 +29,7 @@ func TestCreateUser(t *testing.T) {
 		PasswordConfirm: password,
 	}
 
-	tc := []struct {
+	testCases := []struct {
 		name    string
 		userArg createUserReq
 		testCaseBase
@@ -110,18 +110,18 @@ func TestCreateUser(t *testing.T) {
 		},
 	}
 
-	for i := 0; i < len(tc); i++ {
-		tci := tc[i]
+	for i := 0; i < len(testCases); i++ {
+		tc := testCases[i]
 
 		url := "/api/users"
 
-		data, err := json.Marshal(tci.userArg)
+		data, err := json.Marshal(tc.userArg)
 		require.NoError(t, err)
 
 		req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 		require.NoError(t, err)
 
-		runServerTest(t, tci, req)
+		runServerTest(t, tc, req)
 	}
 
 }

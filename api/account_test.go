@@ -20,7 +20,7 @@ import (
 func TestGetAccount(t *testing.T) {
 	account := createRandomAccount()
 
-	tc := []struct {
+	testCases := []struct {
 		name      string
 		accountId int64
 		testCaseBase
@@ -85,16 +85,16 @@ func TestGetAccount(t *testing.T) {
 		},
 	}
 
-	for i := 0; i < len(tc); i++ {
-		tci := tc[i]
+	for i := 0; i < len(testCases); i++ {
+		tc := testCases[i]
 
-		t.Run(tci.name, func(t *testing.T) {
-			url := fmt.Sprintf("/api/accounts/%d", tci.accountId)
+		t.Run(tc.name, func(t *testing.T) {
+			url := fmt.Sprintf("/api/accounts/%d", tc.accountId)
 
 			req, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
-			runServerTest(t, tci, req)
+			runServerTest(t, tc, req)
 		})
 	}
 }
@@ -107,7 +107,7 @@ func TestCreateAccount(t *testing.T) {
 		Currency: account.Currency,
 	}
 
-	tc := []struct {
+	testCases := []struct {
 		name       string
 		accountArg createAccountReq
 		testCaseBase
@@ -163,11 +163,11 @@ func TestCreateAccount(t *testing.T) {
 		},
 	}
 
-	for i := 0; i < len(tc); i++ {
-		tci := tc[i]
+	for i := 0; i < len(testCases); i++ {
+		tc := testCases[i]
 
 		var buf bytes.Buffer
-		err := json.NewEncoder(&buf).Encode(tci.accountArg)
+		err := json.NewEncoder(&buf).Encode(tc.accountArg)
 		require.NoError(t, err)
 
 		url := "/api/accounts"
@@ -176,7 +176,7 @@ func TestCreateAccount(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPost, url, reader)
 		require.NoError(t, err)
 
-		runServerTest(t, tci, req)
+		runServerTest(t, tc, req)
 	}
 }
 
@@ -192,7 +192,7 @@ func TestListAccount(t *testing.T) {
 		PageSize: 5,
 	}
 
-	tc := []struct {
+	testCases := []struct {
 		name              string
 		listAccountReqArg listAccountReq
 		testCaseBase
@@ -247,20 +247,20 @@ func TestListAccount(t *testing.T) {
 		},
 	}
 
-	for i := 0; i < len(tc); i++ {
-		tci := tc[i]
+	for i := 0; i < len(testCases); i++ {
+		tc := testCases[i]
 
 		var buf bytes.Buffer
-		err := json.NewEncoder(&buf).Encode(tci.listAccountReqArg)
+		err := json.NewEncoder(&buf).Encode(tc.listAccountReqArg)
 		require.NoError(t, err)
 
-		url := fmt.Sprintf("/api/accounts?page_id=%d&page_size=%d", tci.listAccountReqArg.PageID, tci.listAccountReqArg.PageSize)
+		url := fmt.Sprintf("/api/accounts?page_id=%d&page_size=%d", tc.listAccountReqArg.PageID, tc.listAccountReqArg.PageSize)
 		reader := bytes.NewReader(buf.Bytes())
 
 		req, err := http.NewRequest(http.MethodGet, url, reader)
 		require.NoError(t, err)
 
-		runServerTest(t, tci, req)
+		runServerTest(t, tc, req)
 	}
 }
 
