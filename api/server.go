@@ -1,25 +1,51 @@
 package api
 
 import (
+	"fmt"
+
 	db "github.com/escalopa/go-bank/db/sqlc"
+	"github.com/escalopa/go-bank/token"
+	"github.com/escalopa/go-bank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 )
 
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	tokenMaker token.Maker
+	router     *gin.Engine
 }
 
-func NewServer(store db.Store) *Server {
-	server := &Server{store: store}
+func NewServer(config util.Config, store db.Store) (*Server, error) {
+	maker, err := token.NewPasetoMaker(config.App.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create tokenMaker, %w", err)
+	}
 
-	router := gin.Default()
+	server := &Server{config: config, tokenMaker: maker, store: store}
 
+	server.setupValidator()
+	server.setupRouter()
+	return server, nil
+}
+
+func (server *Server) Start(address string) error {
+	if err := server.router.Run(address); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (server *Server) setupValidator() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", validCurrency)
 	}
+}
+
+func (server *Server) setupRouter() {
+	router := gin.Default()
 
 	// Account Routing
 	router.POST("/api/accounts", server.createAccount)
@@ -34,15 +60,10 @@ func NewServer(store db.Store) *Server {
 	router.POST("api/users", server.createUser)
 	router.GET("api/users/:username", server.getUser)
 
-	server.router = router
-	return server
-}
+	// Authenticate Routing
+	router.POST("api/users/login", server.loginUser)
 
-func (server *Server) Start(address string) error {
-	if err := server.router.Run(address); err != nil {
-		return err
-	}
-	return nil
+	server.router = router
 }
 
 func errorResponse(err error) gin.H {

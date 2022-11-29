@@ -59,7 +59,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	res := server.fromUserToUserResponse(user)
+	res := fromUserToUserResponse(user)
 	ctx.JSON(http.StatusCreated, res)
 }
 
@@ -80,6 +80,48 @@ func (server *Server) getUser(ctx *gin.Context) {
 		return
 	}
 
-	res := server.fromUserToUserResponse(user)
+	res := fromUserToUserResponse(user)
 	ctx.JSON(http.StatusOK, res)
+}
+
+type loginUserReq struct {
+	Username string `json:"username" binding:"required,min=6,max=16,alphanum"`
+	Password string `json:"password" binding:"required,min=6,max=16"`
+}
+
+type loginUserRes struct {
+	AccessToken string       `json:"access_token"`
+	User        userResponse `json:"user"`
+}
+
+func (server *Server) loginUser(ctx *gin.Context) {
+	var req loginUserReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	// Get User from DB by Username
+	user, err := server.store.GetUser(ctx, req.Username)
+	if err != nil {
+		server.handleGetDataBaseError(ctx, err)
+		return
+	}
+
+	// Check User's Password
+	err = util.CheckHashedPassword(user.HashedPassword, req.Password)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	// Generate New Access Token for User
+	accessToken, err := server.tokenMaker.CreatToken(user.Username, server.config.App.TokenExpiration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	res := loginUserRes{AccessToken: accessToken, User: fromUserToUserResponse(user)}
+	ctx.JSON(http.StatusAccepted, res)
 }

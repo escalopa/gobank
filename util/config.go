@@ -1,6 +1,8 @@
 package util
 
 import (
+	"time"
+
 	"github.com/spf13/viper"
 )
 
@@ -10,7 +12,9 @@ type DBConfig struct {
 }
 
 type AppConfig struct {
-	Port string `mapstructure:"port"`
+	Port              string        `mapstructure:"port"`
+	TokenSymmetricKey string        `mapstructure:"token_symmetric_key"`
+	TokenExpiration   time.Duration `mapstructure:"token_expiration"`
 }
 
 type Config struct {

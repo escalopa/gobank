@@ -7,8 +7,10 @@ import (
 	"testing"
 
 	mockdb "github.com/escalopa/go-bank/db/mock"
+	"github.com/escalopa/go-bank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 type testCase interface {
@@ -38,7 +40,12 @@ func runServerTest(t *testing.T, tc testCase, req *http.Request) {
 	store := mockdb.NewMockStore(ctrl)
 	tc.buildStubs(store)
 
-	server := NewServer(store)
+	testConfig := util.Config{}
+	testConfig.App.TokenSymmetricKey = util.RandomString(32)
+
+	server, err := NewServer(testConfig, store)
+	require.NoError(t, err)
+
 	recorder := httptest.NewRecorder()
 
 	server.router.ServeHTTP(recorder, req)

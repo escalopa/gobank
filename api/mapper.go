@@ -2,7 +2,7 @@ package api
 
 import db "github.com/escalopa/go-bank/db/sqlc"
 
-func (server *Server) fromUserToUserResponse(user db.User) userResponse {
+func fromUserToUserResponse(user db.User) userResponse {
 	return userResponse{
 		Username:          user.Username,
 		FullName:          user.FullName,
@@ -12,7 +12,7 @@ func (server *Server) fromUserToUserResponse(user db.User) userResponse {
 	}
 }
 
-func (server *Server) fromTransferTxToTransferResponse(result db.TransferTxResult) transferResponse {
+func fromTransferTxToTransferResponse(result db.TransferTxResult) transferResponse {
 	return transferResponse{
 		ID:          result.Transfer.ID,
 		FromAccount: result.FromAccount,

@@ -54,7 +54,7 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		return
 	}
 
-	res := server.fromTransferTxToTransferResponse(result)
+	res := fromTransferTxToTransferResponse(result)
 	ctx.JSON(http.StatusOK, res)
 
 }
