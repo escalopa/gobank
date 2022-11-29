@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/escalopa/go-bank/utils"
+	"github.com/escalopa/go-bank/util"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,10 +17,12 @@ func validateAccountBasic(t *testing.T, account Account) {
 }
 
 func createRandomAccount(t *testing.T) Account {
+	user := createRandomUser(t)
+
 	arg := CreateAccountParams{
-		Owner:    utils.RandomOwner(),
-		Balance:  utils.RandomMoney(),
-		Currency: utils.RandomCurrency(),
+		Owner:    user.Username,
+		Balance:  util.RandomMoney(),
+		Currency: util.RandomCurrency(),
 	}
 
 	account, err := testQueries.CreateAccount(context.Background(), arg)
@@ -57,7 +59,7 @@ func TestUpdateAccount(t *testing.T) {
 
 	arg := UpdateAccountBalanceParams{
 		ID:     account1.ID,
-		Amount: utils.RandomMoney(),
+		Amount: util.RandomMoney(),
 	}
 
 	account2, err := testQueries.UpdateAccountBalance(context.Background(), arg)
@@ -72,18 +74,20 @@ func TestUpdateAccount(t *testing.T) {
 }
 
 func TestListAccount(t *testing.T) {
+	var lastAccount Account
 	for i := 0; i < 10; i++ {
-		createRandomAccount(t)
+		lastAccount = createRandomAccount(t)
 	}
 
 	arg := ListAccountsParams{
+		Owner:  lastAccount.Owner,
 		Limit:  5,
-		Offset: 5,
+		Offset: 0,
 	}
 
 	accounts, err := testQueries.ListAccounts(context.Background(), arg)
 	require.NoError(t, err)
-	require.Len(t, accounts, 5)
+	require.NotEmpty(t, accounts)
 
 	for _, account := range accounts {
 		validateAccountBasic(t, account)

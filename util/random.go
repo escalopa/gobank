@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"fmt"
@@ -42,7 +42,7 @@ func RandomMoney() int64 {
 }
 
 func RandomCurrency() string {
-	currency := []string{"EGP", "USD", "RUB"}
+	currency := []string{EGP, RUB, USD}
 	return currency[rand.Intn(len(currency))]
 }
 

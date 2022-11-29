@@ -1,5 +1,7 @@
 app:
-  port: 8000
+  port: 0.0.0.0:8000
+  token_symmetric_key: 12345678901234567890123456789012
+  token_expiration: 15m 
 
 database:
   connection_string: "postgresql://postgres:postgres@localhost:5444/bank?sslmode=disable"

@@ -8,8 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/escalopa/go-bank/utils"
-
+	"github.com/escalopa/go-bank/util"
 	_ "github.com/lib/pq"
 )
 
@@ -22,9 +21,9 @@ func init() {
 
 func TestMain(m *testing.M) {
 	var err error
-	var config utils.Config
+	var config util.Config
 	// Load config
-	config, err = utils.LoadConfig("../..")
+	config, err = util.LoadConfig("../..")
 	if err != nil {
 		log.Fatal("cannot load configuration for testing", err)
 	}
