@@ -47,7 +47,7 @@ func (server *Server) setupValidator() {
 func (server *Server) setupRouter() {
 	router := gin.Default()
 
-	authGroup := router.Group("/", authMiddleware(server.tokenMaker))
+	authGroup := router.Group("/").Use(authMiddleware(server.tokenMaker))
 
 	{
 		// Account Routing
@@ -60,11 +60,11 @@ func (server *Server) setupRouter() {
 		authGroup.POST("/api/transfers", server.createTransfer)
 
 		// User Routing
-		authGroup.POST("api/users", server.createUser)
 		authGroup.GET("api/users/:username", server.getUser)
 	}
 
 	// Authenticate Routing
+	router.POST("api/users", server.createUser)
 	router.POST("api/users/login", server.loginUser)
 
 	server.router = router

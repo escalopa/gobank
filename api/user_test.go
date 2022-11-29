@@ -11,6 +11,7 @@ import (
 
 	mockdb "github.com/escalopa/go-bank/db/mock"
 	db "github.com/escalopa/go-bank/db/sqlc"
+	"github.com/escalopa/go-bank/token"
 	"github.com/escalopa/go-bank/util"
 	"github.com/golang/mock/gomock"
 	"github.com/lib/pq"
@@ -18,7 +19,7 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	user, password := createRadomUser(t)
+	user, password := createRandomUser(t)
 	uniqueViolationError := &pq.Error{Code: "23505"}
 
 	arg := createUserReq{
@@ -38,74 +39,79 @@ func TestCreateUser(t *testing.T) {
 			name:    "OK",
 			userArg: arg,
 			testCaseBase: testCaseBase{
-				buildStubsMethod: func(store *mockdb.MockStore) {
+				buildStubs: func(store *mockdb.MockStore) {
 					store.EXPECT().
 						CreateUser(gomock.Any(), gomock.Any()).
 						Times(1).
 						Return(user, nil)
 				},
-				checkResponseMethod: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusCreated, recorder.Code)
 					requireBodyMatchUser(t, recorder.Body, user)
 				},
+				setupAuth: func(t *testing.T, request *http.Request, maker token.Maker) {},
 			},
 		},
 		{
 			name: "BadRequest",
 			testCaseBase: testCaseBase{
-				buildStubsMethod: func(store *mockdb.MockStore) {
+				buildStubs: func(store *mockdb.MockStore) {
 					store.EXPECT().
 						CreateUser(gomock.Any(), gomock.Any()).
 						Times(0)
 				},
-				checkResponseMethod: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusBadRequest, recorder.Code)
 				},
+				setupAuth: func(t *testing.T, request *http.Request, maker token.Maker) {},
 			},
 		},
 		{
 			name:    "SQLUserNameViolation",
 			userArg: arg,
 			testCaseBase: testCaseBase{
-				buildStubsMethod: func(store *mockdb.MockStore) {
+				buildStubs: func(store *mockdb.MockStore) {
 					store.EXPECT().
 						CreateUser(gomock.Any(), gomock.Any()).
 						Times(1).
 						Return(db.User{}, uniqueViolationError)
 				},
-				checkResponseMethod: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusForbidden, recorder.Code)
 				},
+				setupAuth: func(t *testing.T, request *http.Request, maker token.Maker) {},
 			},
 		},
 		{
 			name:    "SQLEmailViolation",
 			userArg: arg,
 			testCaseBase: testCaseBase{
-				buildStubsMethod: func(store *mockdb.MockStore) {
+				buildStubs: func(store *mockdb.MockStore) {
 					store.EXPECT().
 						CreateUser(gomock.Any(), gomock.Any()).
 						Times(1).
 						Return(db.User{}, uniqueViolationError)
 				},
-				checkResponseMethod: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusForbidden, recorder.Code)
 				},
+				setupAuth: func(t *testing.T, request *http.Request, maker token.Maker) {},
 			},
 		},
 		{
 			name:    "InternalErrorDB",
 			userArg: arg,
 			testCaseBase: testCaseBase{
-				buildStubsMethod: func(store *mockdb.MockStore) {
+				buildStubs: func(store *mockdb.MockStore) {
 					store.EXPECT().
 						CreateUser(gomock.Any(), gomock.Any()).
 						Times(1).
 						Return(db.User{}, sql.ErrConnDone)
 				},
-				checkResponseMethod: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusInternalServerError, recorder.Code)
 				},
+				setupAuth: func(t *testing.T, request *http.Request, maker token.Maker) {},
 			},
 		},
 	}
@@ -135,7 +141,7 @@ func requireBodyMatchUser(t *testing.T, b io.Reader, user db.User) {
 	require.NoError(t, err)
 }
 
-func createRadomUser(t *testing.T) (db.User, string) {
+func createRandomUser(t *testing.T) (db.User, string) {
 	password := util.RandomString(6)
 
 	hashPassword, err := util.GenerateHashPassword(password)

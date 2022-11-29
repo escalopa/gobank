@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	mockdb "github.com/escalopa/go-bank/db/mock"
+	db "github.com/escalopa/go-bank/db/sqlc"
+	"github.com/escalopa/go-bank/token"
 	"github.com/escalopa/go-bank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
@@ -14,18 +16,23 @@ import (
 )
 
 type testCase interface {
-	buildStubs(store *mockdb.MockStore)
-	checkResponse(t *testing.T, response *httptest.ResponseRecorder)
+	buildStubsMethod(store *mockdb.MockStore)
+	checkResponseMethod(t *testing.T, response *httptest.ResponseRecorder)
+	setupAuthMethod(t *testing.T, request *http.Request, maker token.Maker)
 }
 
 type testCaseBase struct {
-	buildStubsMethod    func(store *mockdb.MockStore)
-	checkResponseMethod func(t *testing.T, response *httptest.ResponseRecorder)
+	buildStubs    func(store *mockdb.MockStore)
+	checkResponse func(t *testing.T, response *httptest.ResponseRecorder)
+	setupAuth     func(t *testing.T, request *http.Request, maker token.Maker)
 }
 
-func (tcb testCaseBase) buildStubs(store *mockdb.MockStore) { tcb.buildStubsMethod(store) }
-func (tcb testCaseBase) checkResponse(t *testing.T, response *httptest.ResponseRecorder) {
-	tcb.checkResponseMethod(t, response)
+func (tcb testCaseBase) buildStubsMethod(store *mockdb.MockStore) { tcb.buildStubs(store) }
+func (tcb testCaseBase) checkResponseMethod(t *testing.T, response *httptest.ResponseRecorder) {
+	tcb.checkResponse(t, response)
+}
+func (tcb testCaseBase) setupAuthMethod(t *testing.T, request *http.Request, maker token.Maker) {
+	tcb.setupAuth(t, request, maker)
 }
 
 func TestMain(m *testing.M) {
@@ -38,16 +45,22 @@ func runServerTest(t *testing.T, tc testCase, req *http.Request) {
 	defer ctrl.Finish()
 
 	store := mockdb.NewMockStore(ctrl)
-	tc.buildStubs(store)
+	tc.buildStubsMethod(store)
+
+	server := newTestServer(t, store)
+	recorder := httptest.NewRecorder()
+
+	tc.setupAuthMethod(t, req, server.tokenMaker)
+	server.router.ServeHTTP(recorder, req)
+	tc.checkResponseMethod(t, recorder)
+}
+
+func newTestServer(t *testing.T, store db.Store) *Server {
 
 	testConfig := util.Config{}
 	testConfig.App.TokenSymmetricKey = util.RandomString(32)
 
 	server, err := NewServer(testConfig, store)
 	require.NoError(t, err)
-
-	recorder := httptest.NewRecorder()
-
-	server.router.ServeHTTP(recorder, req)
-	tc.checkResponse(t, recorder)
+	return server
 }

@@ -4,19 +4,28 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	mockdb "github.com/escalopa/go-bank/db/mock"
+	db "github.com/escalopa/go-bank/db/sqlc"
+	"github.com/golang/mock/gomock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
-	mockdb "github.com/escalopa/go-bank/db/mock"
-	db "github.com/escalopa/go-bank/db/sqlc"
+	"github.com/escalopa/go-bank/token"
+
 	"github.com/escalopa/go-bank/util"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTransfer(t *testing.T) {
-	account1, account2, amount := createRandomAccount(), createRandomAccount(), util.RandomInteger(1, 1000)
+	user1, _ := createRandomUser(t)
+	user2, _ := createRandomUser(t)
+
+	account1 := createRandomAccount(user1.Username)
+	account2 := createRandomAccount(user2.Username)
+
+	amount := util.RandomInteger(1, 1000)
 	account1.Currency, account2.Currency = util.EGP, util.EGP
 
 	arg := createTransferReq{
@@ -36,7 +45,7 @@ func TestCreateTransfer(t *testing.T) {
 			name:        "OK",
 			transferArg: arg,
 			testCaseBase: testCaseBase{
-				buildStubsMethod: func(store *mockdb.MockStore) {
+				buildStubs: func(store *mockdb.MockStore) {
 					store.EXPECT().
 						TransferTx(gomock.Any(), gomock.Eq(db.TransferTxParam{
 							FromAccountID: arg.FromAccountID,
@@ -45,30 +54,31 @@ func TestCreateTransfer(t *testing.T) {
 						})).
 						Times(1)
 
-					store.EXPECT().
-						GetAccount(gomock.Any(), gomock.All()).
-						Times(2)
+					store.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(account1, nil)
+					store.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(account2, nil)
 				},
-				checkResponseMethod: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusOK, recorder.Code)
+				},
+				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username, time.Minute)
 				},
 			},
 		},
 		{
 			name: "BadRequest-Eq(IDS)",
 			transferArg: createTransferReq{
-				FromAccountID: 1,
-				ToAccountID:   1,
-				Amount:        10,
+				FromAccountID: account1.ID,
+				ToAccountID:   account1.ID,
+				Amount:        amount,
 			},
 			testCaseBase: testCaseBase{
-				buildStubsMethod: func(store *mockdb.MockStore) {
-					store.EXPECT().
-						GetAccount(gomock.Any(), gomock.Any()).
-						Times(2)
-				},
-				checkResponseMethod: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				buildStubs: func(store *mockdb.MockStore) {},
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusBadRequest, recorder.Code)
+				},
+				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username, time.Minute)
 				},
 			},
 		},
@@ -76,17 +86,12 @@ func TestCreateTransfer(t *testing.T) {
 			name:        "BadRequest-Binding",
 			transferArg: createTransferReq{},
 			testCaseBase: testCaseBase{
-				buildStubsMethod: func(store *mockdb.MockStore) {
-					store.EXPECT().
-						TransferTx(gomock.Any(), gomock.Any()).
-						Times(0)
-
-					store.EXPECT().
-						GetAccount(gomock.Any(), gomock.Any()).
-						Times(0)
-				},
-				checkResponseMethod: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				buildStubs: func(store *mockdb.MockStore) {},
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusBadRequest, recorder.Code)
+				},
+				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username, time.Minute)
 				},
 			},
 		},
@@ -94,7 +99,7 @@ func TestCreateTransfer(t *testing.T) {
 			name:        "InternalError",
 			transferArg: arg,
 			testCaseBase: testCaseBase{
-				buildStubsMethod: func(store *mockdb.MockStore) {
+				buildStubs: func(store *mockdb.MockStore) {
 					store.EXPECT().
 						TransferTx(gomock.Any(), gomock.Eq(db.TransferTxParam{
 							FromAccountID: arg.FromAccountID,
@@ -103,12 +108,14 @@ func TestCreateTransfer(t *testing.T) {
 						})).
 						Times(1).Return(db.TransferTxResult{}, sql.ErrConnDone)
 
-					store.EXPECT().
-						GetAccount(gomock.Any(), gomock.Any()).
-						Times(2)
+					store.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(account1, nil)
+					store.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(account2, nil)
 				},
-				checkResponseMethod: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusInternalServerError, recorder.Code)
+				},
+				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username, time.Minute)
 				},
 			},
 		},

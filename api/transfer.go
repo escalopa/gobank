@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	db "github.com/escalopa/go-bank/db/sqlc"
@@ -29,15 +28,14 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		return
 	}
 
-	if !server.validateTransferCurrency(ctx, req.FromAccountID, req.ToAccountID) {
+	fromAccount, to, isValid := server.validateTransfer(ctx, req.FromAccountID, req.ToAccountID)
+	if !isValid {
 		return
 	}
 
-	if req.FromAccountID == req.ToAccountID {
-		ctx.JSON(http.StatusBadRequest, errorResponse(fmt.Errorf(fmt.Sprintf("can't transfer to the same account, req.FromAccountId=%d, req.ToAccount=%d",
-			req.FromAccountID,
-			req.ToAccountID,
-		))))
+	_ = to
+	if !isUserAccountOwner(ctx, fromAccount) {
+		ctx.JSON(http.StatusUnauthorized, ErrNotAccountOwner)
 		return
 	}
 
@@ -59,26 +57,26 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 
 }
 
-func (server *Server) validateTransferCurrency(ctx *gin.Context, accountID1, accountID2 int64) bool {
-
-	account1, err := server.store.GetAccount(ctx, accountID1)
-	if err != nil {
-		server.handleGetDataBaseError(ctx, err)
-		return false
+func (server *Server) validateTransfer(ctx *gin.Context, accountID1, accountID2 int64) (from db.Account, to db.Account, isValid bool) {
+	if accountID1 == accountID2 {
+		ctx.JSON(http.StatusBadRequest, errorResponse(ErrSameAccountTransfer(accountID1, accountID2)))
+		return
 	}
 
-	account2, err := server.store.GetAccount(ctx, accountID2)
-	if err != nil {
-		server.handleGetDataBaseError(ctx, err)
-		return false
+	from, isValid = server.isValidAccount(ctx, accountID1)
+	if !isValid {
+		return
 	}
 
-	if account1.Currency != account2.Currency {
-		ctx.JSON(http.StatusBadRequest, errorResponse(fmt.Errorf(fmt.Sprintf("currency mismatch account1.currency=%s, account2.currency=%s",
-			account1.Currency,
-			account2.Currency))))
-		return false
+	to, isValid = server.isValidAccount(ctx, accountID2)
+	if !isValid {
+		return
 	}
 
-	return true
+	if from.Currency != to.Currency {
+		ctx.JSON(http.StatusBadRequest, errorResponse(ErrCurrencyMismatch(from.Currency, to.Currency)))
+		return
+	}
+
+	return
 }

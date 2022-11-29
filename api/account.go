@@ -1,15 +1,16 @@
 package api
 
 import (
+	"database/sql"
 	"net/http"
 
 	db "github.com/escalopa/go-bank/db/sqlc"
+	"github.com/escalopa/go-bank/token"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )
 
 type createAccountReq struct {
-	Owner    string `json:"owner"  binding:"required"`
 	Currency string `json:"currency" binding:"required,currency"`
 }
 
@@ -20,8 +21,9 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		return
 	}
 
+	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	account, err := server.store.CreateAccount(ctx, db.CreateAccountParams{
-		Owner:    req.Owner,
+		Owner:    payload.Username,
 		Balance:  0,
 		Currency: req.Currency,
 	})
@@ -52,9 +54,13 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 
-	account, err := server.store.GetAccount(ctx, req.ID)
-	if err != nil {
-		server.handleGetDataBaseError(ctx, err)
+	account, isValid := server.isValidAccount(ctx, req.ID)
+	if !isValid {
+		return
+	}
+
+	if !isUserAccountOwner(ctx, account) {
+		ctx.JSON(http.StatusUnauthorized, ErrNotAccountOwner)
 		return
 	}
 
@@ -73,7 +79,9 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
+	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	accounts, err := server.store.ListAccounts(ctx, db.ListAccountsParams{
+		Owner:  payload.Username,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	})
@@ -97,6 +105,16 @@ func (server *Server) deleteAccounts(ctx *gin.Context) {
 		return
 	}
 
+	account, isValid := server.isValidAccount(ctx, req.ID)
+	if !isValid {
+		return
+	}
+
+	if !isUserAccountOwner(ctx, account) {
+		ctx.JSON(http.StatusUnauthorized, ErrNotAccountOwner)
+		return
+	}
+
 	err := server.store.DeleteAccount(ctx, req.ID)
 
 	if err != nil {
@@ -105,4 +123,25 @@ func (server *Server) deleteAccounts(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"id": req.ID})
+}
+
+func isUserAccountOwner(ctx *gin.Context, account db.Account) bool {
+	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	return payload.Username == account.Owner
+}
+
+func (server *Server) isValidAccount(ctx *gin.Context, accountID int64) (db.Account, bool) {
+	account, err := server.store.GetAccount(ctx, accountID)
+	if err != nil {
+		if err != nil {
+			if err == sql.ErrNoRows {
+				ctx.JSON(http.StatusNotFound, errorResponse(err))
+				return db.Account{}, false
+			}
+
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return db.Account{}, false
+		}
+	}
+	return account, true
 }
