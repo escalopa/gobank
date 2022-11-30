@@ -2,8 +2,8 @@ version: "3.8"
 
 services:
   database:
-    container_name: "go-bank"
-    image: "postgres:latest"
+    container_name: "go-bank-pg"
+    image: "postgres:12.8"
     restart: always
     environment:
       - POSTGRES_USER=postgres
@@ -13,6 +13,11 @@ services:
       - '5444:5432'
     volumes:
       - db:/var/lib/postgresql/data
+
+networks:
+  default:
+    name: gobank
+    external: true
 
 volumes:
   db:
