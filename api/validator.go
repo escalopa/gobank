@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/escalopa/go-bank/util"
+	"github.com/escalopa/gobank/util"
 	"github.com/go-playground/validator/v10"
 )
 

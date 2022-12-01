@@ -1,6 +1,6 @@
 package api
 
-import db "github.com/escalopa/go-bank/db/sqlc"
+import db "github.com/escalopa/gobank/db/sqlc"
 
 func fromUserToUserResponse(user db.User) userResponse {
 	return userResponse{

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/escalopa/go-bank/token"
-	"github.com/escalopa/go-bank/util"
+	"github.com/escalopa/gobank/token"
+	"github.com/escalopa/gobank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 )

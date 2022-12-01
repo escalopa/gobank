@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/escalopa/go-bank/api"
-	db "github.com/escalopa/go-bank/db/sqlc"
-	"github.com/escalopa/go-bank/util"
+	"github.com/escalopa/gobank/api"
+	db "github.com/escalopa/gobank/db/sqlc"
+	"github.com/escalopa/gobank/util"
 	_ "github.com/lib/pq"
 	_ "github.com/mattes/migrate/source/file"
 )

@@ -3,9 +3,9 @@ package api
 import (
 	"fmt"
 
-	db "github.com/escalopa/go-bank/db/sqlc"
-	"github.com/escalopa/go-bank/token"
-	"github.com/escalopa/go-bank/util"
+	db "github.com/escalopa/gobank/db/sqlc"
+	"github.com/escalopa/gobank/token"
+	"github.com/escalopa/gobank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"

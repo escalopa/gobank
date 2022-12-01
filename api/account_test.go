@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	mockdb "github.com/escalopa/go-bank/db/mock"
-	db "github.com/escalopa/go-bank/db/sqlc"
-	"github.com/escalopa/go-bank/token"
-	"github.com/escalopa/go-bank/util"
+	mockdb "github.com/escalopa/gobank/db/mock"
+	db "github.com/escalopa/gobank/db/sqlc"
+	"github.com/escalopa/gobank/token"
+	"github.com/escalopa/gobank/util"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )

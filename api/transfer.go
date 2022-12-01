@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	db "github.com/escalopa/go-bank/db/sqlc"
+	db "github.com/escalopa/gobank/db/sqlc"
 	"github.com/gin-gonic/gin"
 )
 

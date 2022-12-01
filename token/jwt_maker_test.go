@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/escalopa/go-bank/util"
+	"github.com/escalopa/gobank/util"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/stretchr/testify/require"
 )

@@ -1,4 +1,4 @@
-module github.com/escalopa/go-bank
+module github.com/escalopa/gobank
 
 go 1.19
 

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/escalopa/go-bank/util"
+	"github.com/escalopa/gobank/util"
 	_ "github.com/lib/pq"
 )
 
