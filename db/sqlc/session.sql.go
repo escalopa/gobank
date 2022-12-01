@@ -17,13 +17,11 @@ INSERT INTO "sessions" (
     id,
     username,
     refresh_token,
-    is_blocked,
     user_agent,
     client_ip,
-    expires_at,
-    created_at
+    expires_at
   )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id, username, refresh_token, is_blocked, user_agent, client_ip, expires_at, created_at
 `
 
@@ -31,11 +29,9 @@ type CreateSessionParams struct {
 	ID           uuid.UUID `json:"id"`
 	Username     string    `json:"username"`
 	RefreshToken string    `json:"refresh_token"`
-	IsBlocked    bool      `json:"is_blocked"`
 	UserAgent    string    `json:"user_agent"`
 	ClientIp     string    `json:"client_ip"`
-	ExpiresAt    string    `json:"expires_at"`
-	CreatedAt    time.Time `json:"created_at"`
+	ExpiresAt    time.Time `json:"expires_at"`
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
@@ -43,11 +39,9 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		arg.ID,
 		arg.Username,
 		arg.RefreshToken,
-		arg.IsBlocked,
 		arg.UserAgent,
 		arg.ClientIp,
 		arg.ExpiresAt,
-		arg.CreatedAt,
 	)
 	var i Session
 	err := row.Scan(

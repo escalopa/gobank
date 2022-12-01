@@ -5,8 +5,8 @@ CREATE TABLE "sessions" (
     "is_blocked" boolean NOT NULL DEFAULT false,
     "user_agent" varchar NOT NULL,
     "client_ip" varchar NOT NULL,
-    "expires_at" varchar NOT NULL,
+    "expires_at" timestamptz NOT NULL,
     "created_at" timestamptz NOT NULL DEFAULT (now())
 );
-ALTER TABLE "sessiions"
+ALTER TABLE "sessions"
 ADD FOREIGN KEY ("username") REFERENCES "users" ("username");

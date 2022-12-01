@@ -8,6 +8,13 @@ import (
 var (
 	ErrNotAccountOwner = errors.New("account doesn't belong to authenticated user")
 
+	// Refresh token errors
+	ErrMismatchedTokenOwner    = errors.New("refresh token doesn't belong to authenticated user")
+	ErrInvalidRefreshToken     = errors.New("invalid refresh token")
+	ErrBlockedRefreshToken     = errors.New("refresh token is blocked")
+	ErrMismatchedRefreshTokens = errors.New("refresh token doesn't match with stored refresh token")
+	ErrExpiredRefreshToken     = errors.New("refresh token has expired")
+
 	ErrSameAccountTransfer = func(from, to int64) error {
 		return fmt.Errorf(fmt.Sprintf("can't transfer to the same account, req.FromAccountId=%d, req.ToAccount=%d",
 			from, to,

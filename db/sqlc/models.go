@@ -33,7 +33,7 @@ type Session struct {
 	IsBlocked    bool      `json:"is_blocked"`
 	UserAgent    string    `json:"user_agent"`
 	ClientIp     string    `json:"client_ip"`
-	ExpiresAt    string    `json:"expires_at"`
+	ExpiresAt    time.Time `json:"expires_at"`
 	CreatedAt    time.Time `json:"created_at"`
 }
 

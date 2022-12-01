@@ -50,22 +50,23 @@ func (server *Server) setupRouter() {
 	authGroup := router.Group("/").Use(authMiddleware(server.tokenMaker))
 
 	{
-		// Account Routing
+		// Account Routes
 		authGroup.POST("/api/accounts", server.createAccount)
 		authGroup.GET("/api/accounts/:id", server.getAccount)
 		authGroup.GET("/api/accounts", server.listAccounts)
 		authGroup.DELETE("/api/accounts/:id", server.deleteAccounts)
 
-		// Transfer Routing
+		// Transfer Routes
 		authGroup.POST("/api/transfers", server.createTransfer)
 
-		// User Routing
+		// User Routes
 		authGroup.GET("api/users/:username", server.getUser)
 	}
 
-	// Authenticate Routing
+	// Unauthenticated Routes
 	router.POST("api/users", server.createUser)
 	router.POST("api/users/login", server.loginUser)
+	router.POST("api/users/renew", server.renewAccessToken)
 
 	server.router = router
 }
