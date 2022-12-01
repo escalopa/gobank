@@ -58,7 +58,7 @@ func runServerTest(t *testing.T, tc testCase, req *http.Request) {
 func newTestServer(t *testing.T, store db.Store) *Server {
 
 	testConfig := util.Config{}
-	testConfig.App.TokenSymmetricKey = util.RandomString(32)
+	testConfig.TokenSymmetricKey = util.RandomString(32)
 
 	server, err := NewServer(testConfig, store)
 	require.NoError(t, err)

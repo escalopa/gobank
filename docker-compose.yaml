@@ -1,8 +1,8 @@
 version: "3.8"
 
 services:
-  database:
-    container_name: "go-bank-pg"
+  postgres:
+    container_name: "bank-pg"
     image: "postgres:12.8"
     restart: always
     environment:
@@ -13,11 +13,24 @@ services:
       - '5444:5432'
     volumes:
       - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-networks:
-  default:
-    name: gobank
-    external: true
+  api:
+    container_name: "bank-api"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      GIN_MODE: release
+      DB_CONNECTION_STRING: "postgresql://postgres:postgres@postgres:5432/bank?sslmode=disable"
+    ports:
+      - "8001:8000"
+    depends_on:
+      - postgres
 
 volumes:
   db:
