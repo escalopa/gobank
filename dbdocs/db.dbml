@@ -1,0 +1,66 @@
+Table "accounts" {
+  "id" bigserial [pk, increment]
+  "owner" varchar [not null]
+  "balance" bigint [not null]
+  "currency" varchar [not null]
+  "created_at" timestamptz [not null, default: `now()`]
+
+Indexes {
+  owner
+}
+}
+
+Table "entries" {
+  "id" bigserial [pk, increment]
+  "account_id" bigint [not null]
+  "amount" bigint [not null, note: 'can be negative or positive']
+  "created_at" timestamptz [not null, default: `now()`]
+
+Indexes {
+  account_id
+}
+}
+
+Table "transfers" {
+  "id" bigserial [pk, increment]
+  "from_account_id" bigint [not null]
+  "to_account_id" bigint [not null]
+  "amount" bigint [not null, note: 'must be positive']
+  "created_at" timestamptz [not null, default: `now()`]
+
+Indexes {
+  from_account_id
+  to_account_id
+  (from_account_id, to_account_id)
+}
+}
+
+Table "users" {
+  "username" varchar [pk]
+  "hashed_password" varchar [not null]
+  "full_name" varchar [not null]
+  "email" varchar [unique, not null]
+  "password_changed_at" timestamptz [not null, default: `'0001-01-01 00:00:00Z'`]
+  "created_at" timestamptz [not null, default: `now()`]
+}
+
+Table "sessions" {
+  "id" uuid [not null]
+  "username" varchar [not null]
+  "refresh_token" varchar [not null]
+  "is_blocked" boolean [not null, default: false]
+  "user_agent" varchar [not null]
+  "client_ip" varchar [not null]
+  "expires_at" timestamptz [not null]
+  "created_at" timestamptz [not null, default: `now()`]
+}
+
+Ref:"accounts"."id" < "entries"."account_id"
+
+Ref:"accounts"."id" < "transfers"."from_account_id"
+
+Ref:"accounts"."id" < "transfers"."to_account_id"
+
+Ref:"users"."username" < "accounts"."owner"
+
+Ref:"users"."username" < "sessions"."username"
