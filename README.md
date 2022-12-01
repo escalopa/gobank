@@ -1,4 +1,4 @@
-# go-bank
+# gobank
 Bank API Built with golang
 
 

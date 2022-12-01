@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/escalopa/go-bank/token"
+	"github.com/escalopa/gobank/token"
 	"github.com/gin-gonic/gin"
 )
 

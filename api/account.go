@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"net/http"
 
-	db "github.com/escalopa/go-bank/db/sqlc"
-	"github.com/escalopa/go-bank/token"
+	db "github.com/escalopa/gobank/db/sqlc"
+	"github.com/escalopa/gobank/token"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )

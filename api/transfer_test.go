@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	mockdb "github.com/escalopa/go-bank/db/mock"
-	db "github.com/escalopa/go-bank/db/sqlc"
+	mockdb "github.com/escalopa/gobank/db/mock"
+	db "github.com/escalopa/gobank/db/sqlc"
 	"github.com/golang/mock/gomock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/escalopa/go-bank/token"
+	"github.com/escalopa/gobank/token"
 
-	"github.com/escalopa/go-bank/util"
+	"github.com/escalopa/gobank/util"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,22 +1,26 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 
-	"github.com/escalopa/go-bank/api"
-	db "github.com/escalopa/go-bank/db/sqlc"
-	"github.com/escalopa/go-bank/util"
+	"github.com/escalopa/gobank/api"
+	db "github.com/escalopa/gobank/db/sqlc"
+	"github.com/escalopa/gobank/util"
 	_ "github.com/lib/pq"
+	_ "github.com/mattes/migrate/source/file"
 )
 
+var config util.Config
+
 func main() {
-	config, err := util.LoadConfig(".")
+	var err error
+
+	config, err = util.LoadConfig(".")
 	if err != nil {
 		log.Fatal("cannot read configuration", err)
 	}
 
-	conn, err := sql.Open(config.DB.Driver, config.DB.ConnectionString)
+	conn, err := util.InitDatabase(config)
 	if err != nil {
 		log.Fatalf("cannot open connection to db, err: %s", err)
 	}
@@ -27,8 +31,8 @@ func main() {
 		log.Fatalf("cannot create server, err: %s", err)
 	}
 
-	if err := server.Start(config.App.Port); err != nil {
-		log.Fatalf("cannot start server address: %s, err: %s", config.App.Port, err)
+	if err := server.Start(config.Port); err != nil {
+		log.Fatalf("cannot start server address: %s, err: %s", config.Port, err)
 	}
 
 }

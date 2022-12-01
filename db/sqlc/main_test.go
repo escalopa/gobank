@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/escalopa/go-bank/util"
+	"github.com/escalopa/gobank/util"
 	_ "github.com/lib/pq"
 )
 
@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// Connect to db
-	testDB, err = sql.Open(config.DB.Driver, config.DB.ConnectionString)
+	testDB, err = sql.Open(config.Driver, config.ConnectionString)
 	if err != nil {
 		log.Fatal("cannot connect to db: ", err)
 	}

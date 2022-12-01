@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
-	mockdb "github.com/escalopa/go-bank/db/mock"
-	db "github.com/escalopa/go-bank/db/sqlc"
-	"github.com/escalopa/go-bank/token"
-	"github.com/escalopa/go-bank/util"
+	mockdb "github.com/escalopa/gobank/db/mock"
+	db "github.com/escalopa/gobank/db/sqlc"
+	"github.com/escalopa/gobank/token"
+	"github.com/escalopa/gobank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -58,7 +58,7 @@ func runServerTest(t *testing.T, tc testCase, req *http.Request) {
 func newTestServer(t *testing.T, store db.Store) *Server {
 
 	testConfig := util.Config{}
-	testConfig.App.TokenSymmetricKey = util.RandomString(32)
+	testConfig.TokenSymmetricKey = util.RandomString(32)
 
 	server, err := NewServer(testConfig, store)
 	require.NoError(t, err)

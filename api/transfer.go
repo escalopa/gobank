@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	db "github.com/escalopa/go-bank/db/sqlc"
+	db "github.com/escalopa/gobank/db/sqlc"
 	"github.com/gin-gonic/gin"
 )
 
@@ -73,7 +73,8 @@ func (server *Server) validateTransfer(ctx *gin.Context, accountID1, accountID2 
 		return
 	}
 
-	if from.Currency != to.Currency {
+	isValid = from.Currency == to.Currency
+	if !isValid {
 		ctx.JSON(http.StatusBadRequest, errorResponse(ErrCurrencyMismatch(from.Currency, to.Currency)))
 		return
 	}

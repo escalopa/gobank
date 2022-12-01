@@ -4,4 +4,4 @@ ALTER TABLE
 ALTER TABLE
     "accounts" DROP CONSTRAINT IF EXISTS "accounts_owner_fkey";
 
-DROP TABLE "users" IF EXISTS;
+DROP TABLE IF EXISTS "users";
