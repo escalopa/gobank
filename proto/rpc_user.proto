@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package pb;
+
+option go_package = "github.com/escalopa/gobank/pb";
+
+message UserRequest {
+  string Username = 1;
+  string FullName = 2;
+  string Email = 3;
+  string Password = 4;
+  string PasswordConfirm = 5;
+}
+
+message UserResponse {
+  string Username = 1;
+  string FullName = 2;
+  string Email = 3;
+  google.protobuf.Timestamp CreatedAt = 4;
+  google.protobuf.Timestamp PasswordChangedAt = 5;
+}

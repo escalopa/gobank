@@ -22,4 +22,10 @@ server:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/escalopa/gobank/db/sqlc Store
 
-.PHONY: migrateUp migrateDown sqlc test server mock migrateCreate
+proto:
+	rm -rf pb/*
+	protoc  --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
+    --go-grpc_out=pb --go-grpc_opt=paths=source_relative \
+    proto/*.proto
+
+.PHONY: migrateUp migrateDown sqlc test server mock migrateCreate proto
