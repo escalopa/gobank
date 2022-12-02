@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+import "user.proto";
+import "rpc_user.proto";
+import "rpc_login.proto";
+
+package pb;
+
+option go_package = "github.com/escalopa/gobank/pb";
+
+service BankService {
+  // Auth gRPC calls
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Logout(LogoutRequest) returns (google.protobuf.Empty);
+  
+  // User gRPC calls
+  rpc CreateUser(UserRequest) returns (UserResponse);
+  rpc GetUser(Username) returns (UserResponse);
+  rpc UpdateUser(UserRequest) returns (UserResponse);
+  rpc DeleteUser(Username) returns (google.protobuf.Empty);
+}
