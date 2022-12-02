@@ -8,9 +8,10 @@ import (
 
 type Config struct {
 	// App
-	Port              string        `mapstructure:"APP_PORT"`
-	TokenSymmetricKey string        `mapstructure:"APP_TOKEN_SYMMETRIC_KEY"`
-	TokenExpiration   time.Duration `mapstructure:"APP_TOKEN_EXPIRATION"`
+	Port                   string        `mapstructure:"APP_PORT"`
+	TokenSymmetricKey      string        `mapstructure:"APP_TOKEN_SYMMETRIC_KEY"`
+	AccessTokenExpiration  time.Duration `mapstructure:"ACCESS_TOKEN_EXPIRATION"`
+	RefreshTokenExpiration time.Duration `mapstructure:"REFRESH__TOKEN_EXPIRATION"`
 
 	// Database
 	ConnectionString string `mapstructure:"DB_CONNECTION_STRING"`

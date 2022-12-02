@@ -7,6 +7,9 @@ migrateDown:
 migrateCreate:
 	migrate create -ext sql -dir ./db/migration -seq $(name)
 
+migrateForce:
+	migrate -path ./db/migration -database "postgres://postgres:postgres@localhost:5444/bank?sslmode=disable" -verbose force $(version)
+
 sqlc:
 	sqlc generate
 
