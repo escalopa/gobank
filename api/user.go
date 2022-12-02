@@ -30,7 +30,7 @@ type createUserReq struct {
 	PasswordConfirm string `json:"password_confirm" binding:"required,eqfield=Password"`
 }
 
-func (server *Server) createUser(ctx *gin.Context) {
+func (server *GinServer) createUser(ctx *gin.Context) {
 	var req createUserReq
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -66,7 +66,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, res)
 }
 
-func (server *Server) getUser(ctx *gin.Context) {
+func (server *GinServer) getUser(ctx *gin.Context) {
 	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	user, isValid := server.isValidUser(ctx, payload.Username)
 	if !isValid {
@@ -91,7 +91,7 @@ type loginUserRes struct {
 	User                  userResponse `json:"user"`
 }
 
-func (server *Server) loginUser(ctx *gin.Context) {
+func (server *GinServer) loginUser(ctx *gin.Context) {
 	var req loginUserReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -151,7 +151,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusAccepted, res)
 }
 
-func (server *Server) isValidUser(ctx *gin.Context, username string) (db.User, bool) {
+func (server *GinServer) isValidUser(ctx *gin.Context, username string) (db.User, bool) {
 	user, err := server.store.GetUser(ctx, username)
 	if err != nil {
 		if err != nil {
@@ -167,7 +167,7 @@ func (server *Server) isValidUser(ctx *gin.Context, username string) (db.User, b
 	return user, true
 }
 
-// func (server *Server) getCurrentUser(ctx *gin.Context) db.User {
+// func (server *GinServer) getCurrentUser(ctx *gin.Context) db.User {
 // 	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 // 	user, isValid := server.isValidUser(ctx, payload.Username)
 // 	if !isValid {

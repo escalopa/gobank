@@ -17,7 +17,7 @@ type renewAccessTokenRes struct {
 	AccessTokenExpiresAt time.Time `json:"access_expires_at"`
 }
 
-func (server *Server) renewAccessToken(ctx *gin.Context) {
+func (server *GinServer) renewAccessToken(ctx *gin.Context) {
 	var req renewAccessTokenReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))

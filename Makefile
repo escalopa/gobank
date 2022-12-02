@@ -28,4 +28,7 @@ proto:
     --go-grpc_out=pb --go-grpc_opt=paths=source_relative \
     proto/*.proto
 
-.PHONY: migrateUp migrateDown sqlc test server mock migrateCreate proto
+evans: 
+	evans --host localhost --port 9000 -r repl
+
+.PHONY: migrateUp migrateDown sqlc test server mock migrateCreate proto evans

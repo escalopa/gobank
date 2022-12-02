@@ -5,6 +5,7 @@ import (
 
 	"github.com/escalopa/gobank/api"
 	db "github.com/escalopa/gobank/db/sqlc"
+	"github.com/escalopa/gobank/gapi"
 	"github.com/escalopa/gobank/util"
 	_ "github.com/lib/pq"
 	_ "github.com/mattes/migrate/source/file"
@@ -26,13 +27,30 @@ func main() {
 	}
 
 	store := db.NewStore(conn)
-	server, err := api.NewServer(config, store)
+
+	// runGinServer(config, store)
+	runGRPCServer(config, store)
+}
+
+func runGinServer(config util.Config, store db.Store) {
+	ginServer, err := api.NewServer(config, store)
 	if err != nil {
-		log.Fatalf("cannot create server, err: %s", err)
+		log.Fatalf("cannot create HTTP server, err: %s", err)
 	}
 
-	if err := server.Start(config.Port); err != nil {
-		log.Fatalf("cannot start server address: %s, err: %s", config.Port, err)
+	if err := ginServer.Start(config.HTTPPort); err != nil {
+		log.Fatalf("cannot start server address: %s, err: %s", config.HTTPPort, err)
+	}
+}
+
+func runGRPCServer(config util.Config, store db.Store) {
+	grpcServer, err := gapi.NewServer(config, store)
+	if err != nil {
+		log.Fatalf("cannot create gRPC server, err: %s", err)
 	}
 
+	// Init gRPC server
+	if err := grpcServer.Start(config.GRPCPort); err != nil {
+		log.Fatalf("cannot start gRPC server address: %s, err: %s", config.GRPCPort, err)
+	}
 }

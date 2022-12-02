@@ -14,7 +14,7 @@ type createAccountReq struct {
 	Currency string `json:"currency" binding:"required,currency"`
 }
 
-func (server *Server) createAccount(ctx *gin.Context) {
+func (server *GinServer) createAccount(ctx *gin.Context) {
 	var req createAccountReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -47,7 +47,7 @@ type getAccountReq struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
-func (server *Server) getAccount(ctx *gin.Context) {
+func (server *GinServer) getAccount(ctx *gin.Context) {
 	var req getAccountReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -72,7 +72,7 @@ type listAccountReq struct {
 	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
 }
 
-func (server *Server) listAccounts(ctx *gin.Context) {
+func (server *GinServer) listAccounts(ctx *gin.Context) {
 	var req listAccountReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -98,7 +98,7 @@ type deleteAccountReq struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
-func (server *Server) deleteAccounts(ctx *gin.Context) {
+func (server *GinServer) deleteAccounts(ctx *gin.Context) {
 	var req deleteAccountReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -130,7 +130,7 @@ func isUserAccountOwner(ctx *gin.Context, account db.Account) bool {
 	return payload.Username == account.Owner
 }
 
-func (server *Server) isValidAccount(ctx *gin.Context, accountID int64) (db.Account, bool) {
+func (server *GinServer) isValidAccount(ctx *gin.Context, accountID int64) (db.Account, bool) {
 	account, err := server.store.GetAccount(ctx, accountID)
 	if err != nil {
 		if err != nil {
