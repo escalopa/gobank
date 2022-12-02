@@ -7,17 +7,17 @@ package pb;
 option go_package = "github.com/escalopa/gobank/pb";
 
 message UserRequest {
-  string Username = 1;
-  string FullName = 2;
-  string Email = 3;
-  string Password = 4;
-  string PasswordConfirm = 5;
+  string username = 1;
+  string full_name = 2;
+  string email = 3;
+  string password = 4;
+  string password_confirm = 5;
 }
 
 message UserResponse {
-  string Username = 1;
-  string FullName = 2;
-  string Email = 3;
-  google.protobuf.Timestamp CreatedAt = 4;
-  google.protobuf.Timestamp PasswordChangedAt = 5;
+  string username = 1;
+  string full_name = 2;
+  string email = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp password_changed_at = 5;
 }

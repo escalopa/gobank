@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-import "user.proto";
-
 import "google/protobuf/timestamp.proto";
 import "rpc_user.proto";
 
@@ -10,19 +8,19 @@ package pb;
 option go_package = "github.com/escalopa/gobank/pb";
 
 message LoginRequest {
-  Username Username = 1;
+  string Username = 1;
   string Password = 2;
 }
 
 message LoginResponse {
-  string SessionID = 1;
-  string AccessToken = 2;
-  google.protobuf.Timestamp AccessTokenExpiresAt = 4;
-  string RefreshToken = 3;
-  google.protobuf.Timestamp RefreshTokenExpiresAt = 5;
-  UserResponse User = 6;
+  string session_id = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+  google.protobuf.Timestamp access_token_expires_at = 4;
+  google.protobuf.Timestamp refresh_token_expires_at = 5;
+  UserResponse user = 6;
 }
 
-message LogoutRequest { Username Username = 1; }
+message LogoutRequest { string username = 1; }
 
-message LogoutResponse { Username Username = 1; }
+message LogoutResponse { string username = 1; }
