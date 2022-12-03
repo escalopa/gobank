@@ -11,40 +11,41 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type Server struct {
+type GinServer struct {
 	config     util.Config
 	store      db.Store
 	tokenMaker token.Maker
 	router     *gin.Engine
 }
 
-func NewServer(config util.Config, store db.Store) (*Server, error) {
+func NewServer(config util.Config, store db.Store) (*GinServer, error) {
 	maker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create tokenMaker, %w", err)
 	}
 
-	server := &Server{config: config, tokenMaker: maker, store: store}
+	server := &GinServer{config: config, tokenMaker: maker, store: store}
 
+	gin.SetMode(gin.ReleaseMode)
 	server.setupValidator()
 	server.setupRouter()
 	return server, nil
 }
 
-func (server *Server) Start(address string) error {
+func (server *GinServer) Start(address string) error {
 	if err := server.router.Run(address); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (server *Server) setupValidator() {
+func (server *GinServer) setupValidator() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", validCurrency)
 	}
 }
 
-func (server *Server) setupRouter() {
+func (server *GinServer) setupRouter() {
 	router := gin.Default()
 
 	authGroup := router.Group("/").Use(authMiddleware(server.tokenMaker))
@@ -61,6 +62,7 @@ func (server *Server) setupRouter() {
 
 		// User Routes
 		authGroup.GET("api/users/:username", server.getUser)
+		authGroup.PATCH("api/users", server.updateUser)
 	}
 
 	// Unauthenticated Routes

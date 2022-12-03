@@ -55,7 +55,7 @@ func runServerTest(t *testing.T, tc testCase, req *http.Request) {
 	tc.checkResponseMethod(t, recorder)
 }
 
-func newTestServer(t *testing.T, store db.Store) *Server {
+func newTestServer(t *testing.T, store db.Store) *GinServer {
 
 	testConfig := util.Config{}
 	testConfig.TokenSymmetricKey = util.RandomString(32)

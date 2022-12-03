@@ -29,7 +29,7 @@ type BankServiceClient interface {
 	// User gRPC calls
 	CreateUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	GetUser(ctx context.Context, in *Username, opts ...grpc.CallOption) (*UserResponse, error)
-	UpdateUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserResponse, error)
+	UpdateUser(ctx context.Context, in *UserUpdateRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	DeleteUser(ctx context.Context, in *Username, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
@@ -77,7 +77,7 @@ func (c *bankServiceClient) GetUser(ctx context.Context, in *Username, opts ...g
 	return out, nil
 }
 
-func (c *bankServiceClient) UpdateUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*UserResponse, error) {
+func (c *bankServiceClient) UpdateUser(ctx context.Context, in *UserUpdateRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	out := new(UserResponse)
 	err := c.cc.Invoke(ctx, "/pb.BankService/UpdateUser", in, out, opts...)
 	if err != nil {
@@ -105,7 +105,7 @@ type BankServiceServer interface {
 	// User gRPC calls
 	CreateUser(context.Context, *UserRequest) (*UserResponse, error)
 	GetUser(context.Context, *Username) (*UserResponse, error)
-	UpdateUser(context.Context, *UserRequest) (*UserResponse, error)
+	UpdateUser(context.Context, *UserUpdateRequest) (*UserResponse, error)
 	DeleteUser(context.Context, *Username) (*empty.Empty, error)
 	mustEmbedUnimplementedBankServiceServer()
 }
@@ -126,7 +126,7 @@ func (UnimplementedBankServiceServer) CreateUser(context.Context, *UserRequest) 
 func (UnimplementedBankServiceServer) GetUser(context.Context, *Username) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedBankServiceServer) UpdateUser(context.Context, *UserRequest) (*UserResponse, error) {
+func (UnimplementedBankServiceServer) UpdateUser(context.Context, *UserUpdateRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
 func (UnimplementedBankServiceServer) DeleteUser(context.Context, *Username) (*empty.Empty, error) {
@@ -218,7 +218,7 @@ func _BankService_GetUser_Handler(srv interface{}, ctx context.Context, dec func
 }
 
 func _BankService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserRequest)
+	in := new(UserUpdateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func _BankService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/pb.BankService/UpdateUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BankServiceServer).UpdateUser(ctx, req.(*UserRequest))
+		return srv.(BankServiceServer).UpdateUser(ctx, req.(*UserUpdateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

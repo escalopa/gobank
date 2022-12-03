@@ -1,10 +1,8 @@
 package main
 
 import (
-	"log"
-
-	"github.com/escalopa/gobank/api"
 	db "github.com/escalopa/gobank/db/sqlc"
+	"github.com/escalopa/gobank/servers"
 	"github.com/escalopa/gobank/util"
 	_ "github.com/lib/pq"
 	_ "github.com/mattes/migrate/source/file"
@@ -13,26 +11,15 @@ import (
 var config util.Config
 
 func main() {
-	var err error
+	// Load config from environment variables
+	config = util.LoadConfig(".")
 
-	config, err = util.LoadConfig(".")
-	if err != nil {
-		log.Fatal("cannot read configuration", err)
-	}
-
-	conn, err := util.InitDatabase(config)
-	if err != nil {
-		log.Fatalf("cannot open connection to db, err: %s", err)
-	}
-
+	// Initialize the database
+	conn := db.InitDatabase(config)
 	store := db.NewStore(conn)
-	server, err := api.NewServer(config, store)
-	if err != nil {
-		log.Fatalf("cannot create server, err: %s", err)
-	}
 
-	if err := server.Start(config.Port); err != nil {
-		log.Fatalf("cannot start server address: %s, err: %s", config.Port, err)
-	}
-
+	// Run the gRPC, Gin, and gRPC-Gateway servers concurrently
+	go servers.RunGinServer(config, store)
+	go servers.RunGatewayServer(config, store)
+	servers.RunGRPCServer(config, store)
 }

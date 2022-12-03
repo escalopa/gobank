@@ -9,4 +9,4 @@ CREATE TABLE "sessions" (
     "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 ALTER TABLE "sessions"
-ADD FOREIGN KEY ("username") REFERENCES "users" ("username");
+ADD FOREIGN KEY ("username") REFERENCES "users" ("username") ON DELETE CASCADE;

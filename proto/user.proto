@@ -11,10 +11,10 @@ message Username {
 }
 
 message User {
-  string Username = 1;
-  string HashedPassword = 2;
-  string FullName = 3;
-  string Email = 4;
-  google.protobuf.Timestamp PasswordChangedAt = 5;
-  google.protobuf.Timestamp CreatedAt = 6;
+  string username = 1;
+  string hashedPassword = 2;
+  string fullName = 3;
+  string email = 4;
+  google.protobuf.Timestamp password_changed_at = 5;
+  google.protobuf.Timestamp created_at = 6;
 }

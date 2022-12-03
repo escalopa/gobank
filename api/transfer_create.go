@@ -21,7 +21,7 @@ type createTransferReq struct {
 	Amount        int64 `json:"amount" binding:"required,gte=1"`
 }
 
-func (server *Server) createTransfer(ctx *gin.Context) {
+func (server *GinServer) createTransfer(ctx *gin.Context) {
 	var req createTransferReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -57,7 +57,7 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 
 }
 
-func (server *Server) validateTransfer(ctx *gin.Context, accountID1, accountID2 int64) (from db.Account, to db.Account, isValid bool) {
+func (server *GinServer) validateTransfer(ctx *gin.Context, accountID1, accountID2 int64) (from db.Account, to db.Account, isValid bool) {
 	if accountID1 == accountID2 {
 		ctx.JSON(http.StatusBadRequest, errorResponse(ErrSameAccountTransfer(accountID1, accountID2)))
 		return
