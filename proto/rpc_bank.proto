@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
-
+import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/api/annotations.proto";
 
 import "user.proto";
@@ -11,6 +11,20 @@ import "rpc_login.proto";
 package pb;
 
 option go_package = "github.com/escalopa/gobank/pb";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info : {title : "Gobank project"
+    version : "1.0";
+    contact : {
+        name:
+          "gRPC-Gateway project";
+        url:
+          "https://github.com/escalopa/gobank";
+        email:
+          "none@example.com";
+      };
+  };
+};
 
 service BankService {
   // Auth gRPC calls

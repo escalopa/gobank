@@ -14,6 +14,7 @@ require (
 	github.com/mattes/migrate v3.0.1+incompatible
 	github.com/o1egl/paseto v1.0.0
 	golang.org/x/crypto v0.3.0
+	google.golang.org/genproto v0.0.0-20221114212237-e4508ebdbee1
 	google.golang.org/grpc v1.50.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.1
@@ -44,7 +45,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/net v0.2.0 // indirect
-	google.golang.org/genproto v0.0.0-20221114212237-e4508ebdbee1 // indirect
 )
 
 require (
