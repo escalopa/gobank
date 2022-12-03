@@ -1,6 +1,7 @@
 package util
 
 import (
+	"log"
 	"time"
 
 	"github.com/spf13/viper"
@@ -17,21 +18,26 @@ type Config struct {
 
 	// Database
 	ConnectionString string `mapstructure:"DB_CONNECTION_STRING"`
+	MigrationURL     string `mapstructure:"DB_MIGRATION_URL"`
 	Driver           string `mapstructure:"DB_DRIVER"`
 	Name             string `mapstructure:"DB_NAME"`
 }
 
-func LoadConfig(path string) (config Config, err error) {
+func LoadConfig(path string) (config Config) {
 	viper.AddConfigPath(path)
 	viper.SetConfigType("env")
 	viper.SetConfigName("app.env")
 	viper.AutomaticEnv()
-	err = viper.ReadInConfig()
+	err := viper.ReadInConfig()
 
 	if err != nil {
-		return
+		log.Fatal("cannot read configuration", err)
 	}
 
 	err = viper.Unmarshal(&config)
+	if err != nil {
+		log.Fatal("cannot unmarshal configuration", err)
+	}
+
 	return
 }

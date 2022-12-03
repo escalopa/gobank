@@ -21,9 +21,8 @@ func init() {
 
 func TestMain(m *testing.M) {
 	var err error
-	var config util.Config
 	// Load config
-	config, err = util.LoadConfig("../..")
+	config := util.LoadConfig("../..")
 	if err != nil {
 		log.Fatal("cannot load configuration for testing", err)
 	}

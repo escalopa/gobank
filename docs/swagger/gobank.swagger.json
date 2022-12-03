@@ -5,7 +5,7 @@
     "version": "1.0",
     "contact": {
       "name": "gRPC-Gateway project",
-      "url": "https://github.com/grpc-ecosystem/grpc-gateway",
+      "url": "https://github.com/escalopa/gobank",
       "email": "none@example.com"
     }
   },
