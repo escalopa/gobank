@@ -37,13 +37,13 @@ func (server *GRPCServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 	}
 
 	// Create new session for User
-	// metadata, _ := metadata.FromIncomingContext(ctx)
+	md := server.extractMetadata(ctx)
 	session, err := server.store.CreateSession(ctx, db.CreateSessionParams{
 		ID:           refreshPayload.ID,
 		Username:     req.GetUsername(),
 		RefreshToken: refreshToken,
-		UserAgent:    "",
-		ClientIp:     "",
+		UserAgent:    md.UserAgent,
+		ClientIp:     md.ClientIP,
 		ExpiresAt:    refreshPayload.ExpireAt,
 	})
 

@@ -2,6 +2,8 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+import "google/api/annotations.proto";
+
 import "user.proto";
 import "rpc_user.proto";
 import "rpc_login.proto";
@@ -12,12 +14,44 @@ option go_package = "github.com/escalopa/gobank/pb";
 
 service BankService {
   // Auth gRPC calls
-  rpc Login(LoginRequest) returns (LoginResponse);
-  rpc Logout(LogoutRequest) returns (google.protobuf.Empty);
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post : "/v1/login_user"
+      body : "*"
+    };
+  }
+
+  rpc Logout(LogoutRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post : "/v1/logout_user"
+      body : "*"
+    };
+  }
   
   // User gRPC calls
-  rpc CreateUser(UserRequest) returns (UserResponse);
-  rpc GetUser(Username) returns (UserResponse);
-  rpc UpdateUser(UserRequest) returns (UserResponse);
-  rpc DeleteUser(Username) returns (google.protobuf.Empty);
+  rpc CreateUser(UserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      post : "/v1/create_user"
+      body : "*"
+    };
+  }
+
+  rpc GetUser(Username) returns (UserResponse) {
+    option (google.api.http) = {
+      get : "/v1/get_usre/{username}"
+    };
+  }
+
+  rpc UpdateUser(UserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put : "/v1/put_user"
+      body : "*"
+    };
+  }
+
+  rpc DeleteUser(Username) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete : "/v1/delete_user/{username}"
+    };
+  }
 }

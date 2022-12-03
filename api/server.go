@@ -26,6 +26,7 @@ func NewServer(config util.Config, store db.Store) (*GinServer, error) {
 
 	server := &GinServer{config: config, tokenMaker: maker, store: store}
 
+	gin.SetMode(gin.ReleaseMode)
 	server.setupValidator()
 	server.setupRouter()
 	return server, nil
