@@ -62,6 +62,7 @@ func (server *GinServer) setupRouter() {
 
 		// User Routes
 		authGroup.GET("api/users/:username", server.getUser)
+		authGroup.PATCH("api/users", server.updateUser)
 	}
 
 	// Unauthenticated Routes

@@ -133,25 +133,19 @@ func local_request_BankService_CreateUser_0(ctx context.Context, marshaler runti
 
 }
 
+var (
+	filter_BankService_GetUser_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_BankService_GetUser_0(ctx context.Context, marshaler runtime.Marshaler, client BankServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Username
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["username"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "username")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Username, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "username", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_BankService_GetUser_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -163,21 +157,11 @@ func local_request_BankService_GetUser_0(ctx context.Context, marshaler runtime.
 	var protoReq Username
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["username"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "username")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Username, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "username", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_BankService_GetUser_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.GetUser(ctx, &protoReq)
@@ -186,7 +170,7 @@ func local_request_BankService_GetUser_0(ctx context.Context, marshaler runtime.
 }
 
 func request_BankService_UpdateUser_0(ctx context.Context, marshaler runtime.Marshaler, client BankServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq UserRequest
+	var protoReq UserUpdateRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -203,7 +187,7 @@ func request_BankService_UpdateUser_0(ctx context.Context, marshaler runtime.Mar
 }
 
 func local_request_BankService_UpdateUser_0(ctx context.Context, marshaler runtime.Marshaler, server BankServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq UserRequest
+	var protoReq UserUpdateRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -219,25 +203,19 @@ func local_request_BankService_UpdateUser_0(ctx context.Context, marshaler runti
 
 }
 
+var (
+	filter_BankService_DeleteUser_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_BankService_DeleteUser_0(ctx context.Context, marshaler runtime.Marshaler, client BankServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Username
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["username"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "username")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Username, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "username", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_BankService_DeleteUser_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.DeleteUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -249,21 +227,11 @@ func local_request_BankService_DeleteUser_0(ctx context.Context, marshaler runti
 	var protoReq Username
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["username"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "username")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Username, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "username", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_BankService_DeleteUser_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.DeleteUser(ctx, &protoReq)
@@ -285,7 +253,7 @@ func RegisterBankServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.BankService/Login", runtime.WithHTTPPathPattern("/v1/login_user"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.BankService/Login", runtime.WithHTTPPathPattern("/v1/user_login"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -310,7 +278,7 @@ func RegisterBankServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.BankService/Logout", runtime.WithHTTPPathPattern("/v1/logout_user"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.BankService/Logout", runtime.WithHTTPPathPattern("/v1/user_logout"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -335,7 +303,7 @@ func RegisterBankServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.BankService/CreateUser", runtime.WithHTTPPathPattern("/v1/create_user"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.BankService/CreateUser", runtime.WithHTTPPathPattern("/v1/user_create"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -360,7 +328,7 @@ func RegisterBankServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.BankService/GetUser", runtime.WithHTTPPathPattern("/v1/get_usre/{username}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.BankService/GetUser", runtime.WithHTTPPathPattern("/v1/get_user"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -410,7 +378,7 @@ func RegisterBankServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.BankService/DeleteUser", runtime.WithHTTPPathPattern("/v1/delete_user/{username}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.BankService/DeleteUser", runtime.WithHTTPPathPattern("/v1/delete_user"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -474,7 +442,7 @@ func RegisterBankServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.BankService/Login", runtime.WithHTTPPathPattern("/v1/login_user"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.BankService/Login", runtime.WithHTTPPathPattern("/v1/user_login"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -496,7 +464,7 @@ func RegisterBankServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.BankService/Logout", runtime.WithHTTPPathPattern("/v1/logout_user"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.BankService/Logout", runtime.WithHTTPPathPattern("/v1/user_logout"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -518,7 +486,7 @@ func RegisterBankServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.BankService/CreateUser", runtime.WithHTTPPathPattern("/v1/create_user"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.BankService/CreateUser", runtime.WithHTTPPathPattern("/v1/user_create"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -540,7 +508,7 @@ func RegisterBankServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.BankService/GetUser", runtime.WithHTTPPathPattern("/v1/get_usre/{username}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.BankService/GetUser", runtime.WithHTTPPathPattern("/v1/get_user"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -584,7 +552,7 @@ func RegisterBankServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.BankService/DeleteUser", runtime.WithHTTPPathPattern("/v1/delete_user/{username}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.BankService/DeleteUser", runtime.WithHTTPPathPattern("/v1/delete_user"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -604,17 +572,17 @@ func RegisterBankServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 }
 
 var (
-	pattern_BankService_Login_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "login_user"}, ""))
+	pattern_BankService_Login_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "user_login"}, ""))
 
-	pattern_BankService_Logout_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "logout_user"}, ""))
+	pattern_BankService_Logout_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "user_logout"}, ""))
 
-	pattern_BankService_CreateUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "create_user"}, ""))
+	pattern_BankService_CreateUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "user_create"}, ""))
 
-	pattern_BankService_GetUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "get_usre", "username"}, ""))
+	pattern_BankService_GetUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "get_user"}, ""))
 
 	pattern_BankService_UpdateUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "put_user"}, ""))
 
-	pattern_BankService_DeleteUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "delete_user", "username"}, ""))
+	pattern_BankService_DeleteUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "delete_user"}, ""))
 )
 
 var (

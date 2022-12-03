@@ -6,7 +6,11 @@ import (
 )
 
 var (
+	// Account
 	ErrNotAccountOwner = errors.New("account doesn't belong to authenticated user")
+
+	// User
+	ErrEmailSameAsOld = errors.New("new email is the same as old email")
 
 	// Refresh token errors
 	ErrMismatchedTokenOwner    = errors.New("refresh token doesn't belong to authenticated user")

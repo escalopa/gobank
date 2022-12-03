@@ -6,7 +6,8 @@ import "google/api/annotations.proto";
 
 import "user.proto";
 import "rpc_user.proto";
-import "rpc_login.proto";
+import "rpc_user_update.proto";
+import "rpc_user_login.proto";
 
 package pb;
 
@@ -30,14 +31,14 @@ service BankService {
   // Auth gRPC calls
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post : "/v1/login_user"
+      post : "/v1/user_login"
       body : "*"
     };
   }
 
   rpc Logout(LogoutRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      post : "/v1/logout_user"
+      post : "/v1/user_logout"
       body : "*"
     };
   }
@@ -45,18 +46,18 @@ service BankService {
   // User gRPC calls
   rpc CreateUser(UserRequest) returns (UserResponse) {
     option (google.api.http) = {
-      post : "/v1/create_user"
+      post : "/v1/user_create"
       body : "*"
     };
   }
 
   rpc GetUser(Username) returns (UserResponse) {
     option (google.api.http) = {
-      get : "/v1/get_usre/{username}"
+      get : "/v1/get_user"
     };
   }
 
-  rpc UpdateUser(UserRequest) returns (UserResponse) {
+  rpc UpdateUser(UserUpdateRequest) returns (UserResponse) {
     option (google.api.http) = {
       put : "/v1/put_user"
       body : "*"
@@ -65,7 +66,7 @@ service BankService {
 
   rpc DeleteUser(Username) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      delete : "/v1/delete_user/{username}"
+      delete : "/v1/delete_user"
     };
   }
 }

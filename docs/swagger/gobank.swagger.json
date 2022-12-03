@@ -21,7 +21,100 @@
     "application/json"
   ],
   "paths": {
-    "/v1/create_user": {
+    "/v1/delete_user": {
+      "delete": {
+        "operationId": "BankService_DeleteUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BankService"
+        ]
+      }
+    },
+    "/v1/get_user": {
+      "get": {
+        "operationId": "BankService_GetUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BankService"
+        ]
+      }
+    },
+    "/v1/put_user": {
+      "put": {
+        "operationId": "BankService_UpdateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbUserUpdateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BankService"
+        ]
+      }
+    },
+    "/v1/user_create": {
       "post": {
         "summary": "User gRPC calls",
         "operationId": "BankService_CreateUser",
@@ -54,68 +147,7 @@
         ]
       }
     },
-    "/v1/delete_user/{username}": {
-      "delete": {
-        "operationId": "BankService_DeleteUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "type": "object",
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "BankService"
-        ]
-      }
-    },
-    "/v1/get_usre/{username}": {
-      "get": {
-        "operationId": "BankService_GetUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/pbUserResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "BankService"
-        ]
-      }
-    },
-    "/v1/login_user": {
+    "/v1/user_login": {
       "post": {
         "summary": "Auth gRPC calls",
         "operationId": "BankService_Login",
@@ -148,7 +180,7 @@
         ]
       }
     },
-    "/v1/logout_user": {
+    "/v1/user_logout": {
       "post": {
         "operationId": "BankService_Logout",
         "responses": {
@@ -173,38 +205,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/pbLogoutRequest"
-            }
-          }
-        ],
-        "tags": [
-          "BankService"
-        ]
-      }
-    },
-    "/v1/put_user": {
-      "put": {
-        "operationId": "BankService_UpdateUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/pbUserResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/pbUserRequest"
             }
           }
         ],
@@ -298,6 +298,31 @@
         "passwordChangedAt": {
           "type": "string",
           "format": "date-time"
+        }
+      }
+    },
+    "pbUserUpdatePassword": {
+      "type": "object",
+      "properties": {
+        "oldPassword": {
+          "type": "string"
+        },
+        "newPassword": {
+          "type": "string"
+        }
+      }
+    },
+    "pbUserUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "fullName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "$ref": "#/definitions/pbUserUpdatePassword"
         }
       }
     },
