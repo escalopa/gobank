@@ -14,7 +14,7 @@ type Config struct {
 	GatewayPort            string        `mapstructure:"GATEWAY_PORT"`
 	TokenSymmetricKey      string        `mapstructure:"APP_TOKEN_SYMMETRIC_KEY"`
 	AccessTokenExpiration  time.Duration `mapstructure:"ACCESS_TOKEN_EXPIRATION"`
-	RefreshTokenExpiration time.Duration `mapstructure:"REFRESH__TOKEN_EXPIRATION"`
+	RefreshTokenExpiration time.Duration `mapstructure:"REFRESH_TOKEN_EXPIRATION"`
 
 	// Database
 	ConnectionString string `mapstructure:"DB_CONNECTION_STRING"`

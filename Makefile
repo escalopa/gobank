@@ -38,4 +38,8 @@ proto:
 evans: 
 	evans --host localhost --port 9000 -r repl
 
+docker-rm:
+	docker rm gobank-api gobank-db
+	docker rmi gobank-api
+
 .PHONY: migrateUp migrateDown sqlc test server mock migrateCreate proto evans gendocs

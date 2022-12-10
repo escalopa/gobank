@@ -28,7 +28,9 @@ services:
       GIN_MODE: release
       DB_CONNECTION_STRING: "postgresql://postgres:postgres@db:5432/bank?sslmode=disable"
     ports:
-      - "8001:8000"
+      - "7000:7000"
+      - "8000:8000"
+      - "9000:9000"
     depends_on:
       db:
         condition: service_healthy
