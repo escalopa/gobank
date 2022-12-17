@@ -8,8 +8,8 @@ services:
       - gobank_symmetric_key
       - gobank_database_migration_path
     environment:
-      - DATABASE_DRIVER_FILE=${DATABASE_DRIVER}
-      - DATABASE_URL_FILE==/run/secrets/gobank_database_url
+      - DATABASE_DRIVER_FILE=/run/secrets/gobank_database_driver
+      - DATABASE_URL_FILE=/run/secrets/gobank_database_url
       - SYMMETRIC_KEY_FILE=/run/secrets/gobank_symmetric_key
       - DATABASE_MIGRATION_PATH_FILE==/run/secrets/gobank_database_migration_path
     ports:
@@ -24,8 +24,8 @@ services:
       - gobank_symmetric_key
       - gobank_database_migration_path
     environment:
-      - DATABASE_DRIVER_FILE=${DATABASE_DRIVER}
-      - DATABASE_URL_FILE==/run/secrets/gobank_database_url
+      - DATABASE_DRIVER_FILE=/run/secrets/gobank_database_driver
+      - DATABASE_URL_FILE=/run/secrets/gobank_database_url
       - SYMMETRIC_KEY_FILE=/run/secrets/gobank_symmetric_key
       - DATABASE_MIGRATION_PATH_FILE==/run/secrets/gobank_database_migration_path
     ports:
@@ -40,8 +40,8 @@ services:
       - gobank_symmetric_key
       - gobank_database_migration_path
     environment:
-      - DATABASE_DRIVER_FILE=${DATABASE_DRIVER}
-      - DATABASE_URL_FILE==/run/secrets/gobank_database_url
+      - DATABASE_DRIVER_FILE=/run/secrets/gobank_database_driver
+      - DATABASE_URL_FILE=/run/secrets/gobank_database_url
       - SYMMETRIC_KEY_FILE=/run/secrets/gobank_symmetric_key
       - DATABASE_MIGRATION_PATH_FILE==/run/secrets/gobank_database_migration_path
     ports:
