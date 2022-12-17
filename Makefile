@@ -24,11 +24,11 @@ gendoc:
 
 proto:
 	rm -rf grpc/pb/*
-	rm -rf docs/swagger/*
+	rm -rf docs/swagger/json/*
 	protoc  --proto_path=grpc/proto --go_out=grpc/pb --go_opt=paths=source_relative \
 		--grpc-gateway_out grpc/pb --grpc-gateway_opt=logtostderr=true --grpc-gateway_opt=paths=source_relative \
     --go-grpc_out=grpc/pb --go-grpc_opt=paths=source_relative \
- 		--openapiv2_out=docs/swagger/ --openapiv2_opt=allow_merge=true,merge_file_name=gobank \
+ 		--openapiv2_out=docs/swagger/json/ --openapiv2_opt=allow_merge=true,merge_file_name=gobank \
 		--experimental_allow_proto3_optional \
     grpc/proto/*.proto
 

@@ -1,4 +1,4 @@
-version: 3.8
+version: '3.8'
 
 services:
   api:
@@ -6,8 +6,6 @@ services:
     secrets:
       - gobank_database_url
       - gobank_symmetric_key
-      - gobank_database_migration_path
-      - gobank_database_driver
     environment:
       - DATABASE_URL_FILE=/run/secrets/gobank_database_url
       - SYMMETRIC_KEY_FILE=/run/secrets/gobank_symmetric_key
@@ -23,8 +21,6 @@ services:
     secrets:
       - gobank_database_url
       - gobank_symmetric_key
-      - gobank_database_migration_path
-      - gobank_database_driver
     environment:
       - DATABASE_URL_FILE=/run/secrets/gobank_database_url
       - SYMMETRIC_KEY_FILE=/run/secrets/gobank_symmetric_key
@@ -36,17 +32,16 @@ services:
           - "host.docker.internal:host-gateway"
 
   gateway:
-    image: dekuyo/gobank-gateway:0.1
+    image: dekuyo/gobank-gateway:0.2
     secrets:
       - gobank_database_url
       - gobank_symmetric_key
-      - gobank_database_migration_path
-      - gobank_database_driver
     environment:
       - DATABASE_URL_FILE=/run/secrets/gobank_database_url
       - SYMMETRIC_KEY_FILE=/run/secrets/gobank_symmetric_key
       - MIGRATION_DIRECTORY=file:///migration
       - DATABASE_DRIVER=postgres
+      - SWAGGER_DIRECTORY=/docs/swagger
     ports:
       - "9003:8000"
     extra_hosts:
