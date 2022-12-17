@@ -1,43 +1,49 @@
 package util
 
 import (
-	"log"
-	"time"
-
-	"github.com/spf13/viper"
+	"os"
 )
 
 type Config struct {
-	// App
-	HTTPPort               string        `mapstructure:"HTTP_PORT"`
-	GRPCPort               string        `mapstructure:"GRPC_PORT"`
-	GatewayPort            string        `mapstructure:"GATEWAY_PORT"`
-	TokenSymmetricKey      string        `mapstructure:"APP_TOKEN_SYMMETRIC_KEY"`
-	AccessTokenExpiration  time.Duration `mapstructure:"ACCESS_TOKEN_EXPIRATION"`
-	RefreshTokenExpiration time.Duration `mapstructure:"REFRESH_TOKEN_EXPIRATION"`
-
-	// Database
-	ConnectionString string `mapstructure:"DB_CONNECTION_STRING"`
-	MigrationURL     string `mapstructure:"DB_MIGRATION_URL"`
-	Driver           string `mapstructure:"DB_DRIVER"`
-	Name             string `mapstructure:"DB_NAME"`
+	m map[string]string
 }
 
-func LoadConfig(path string) (config Config) {
-	viper.AddConfigPath(path)
-	viper.SetConfigType("env")
-	viper.SetConfigName("app.env")
-	viper.AutomaticEnv()
-	err := viper.ReadInConfig()
+func NewConfig() *Config {
+	return &Config{
+		m: make(map[string]string),
+	}
+}
 
-	if err != nil {
-		log.Fatal("cannot read configuration", err)
+// Get returns the value of the key
+// if the key is not found in the map, it checks if the key_FILE exists
+// then it checks if the key itself is set from env
+// otherwise it returns an empty string
+func (c *Config) Get(key string) (result string) {
+	// check if key exists in map
+	if val, ok := c.m[key]; ok {
+		return val
 	}
 
-	err = viper.Unmarshal(&config)
-	if err != nil {
-		log.Fatal("cannot unmarshal configuration", err)
-	}
+	defer func() {
+		if result != "" {
+			c.m[key] = result
+		}
+	}()
 
-	return
+	// check if file flag exists
+	file := key + "_FILE"
+	secret, set := os.LookupEnv(file)
+	if set {
+		b, err := os.ReadFile(secret)
+		if err != nil {
+			return ""
+		}
+		return string(b)
+	} else {
+		return os.Getenv(key)
+	}
+}
+
+func (c *Config) Set(key, value string) {
+	c.m[key] = value
 }
