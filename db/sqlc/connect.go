@@ -10,13 +10,13 @@ import (
 	"github.com/mattes/migrate/database/postgres"
 )
 
-func InitDatabase(config util.Config) *sql.DB {
-	conn, err := sql.Open(config.Driver, config.ConnectionString)
+func InitDatabase(config *util.Config) *sql.DB {
+	conn, err := sql.Open(config.Get("DATABASE_DRIVER"), config.Get("DATABASE_URL"))
 	if err != nil {
 		log.Fatalf("cannot open connection to db, err: %s", err)
 	}
 
-	err = migrateDB(conn, config.MigrationURL)
+	err = migrateDB(conn, config.Get("DATABASE_MIGRATION_PATH"))
 	if err != nil {
 		log.Fatalf("cannot migrate db, err: %s", err)
 	}

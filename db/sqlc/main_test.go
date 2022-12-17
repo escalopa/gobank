@@ -22,13 +22,13 @@ func init() {
 func TestMain(m *testing.M) {
 	var err error
 	// Load config
-	config := util.LoadConfig("../..")
+	config := util.NewConfig()
 	if err != nil {
 		log.Fatal("cannot load configuration for testing", err)
 	}
 
 	// Connect to db
-	testDB, err = sql.Open(config.Driver, config.ConnectionString)
+	testDB, err = sql.Open(config.Get("DATABASE_DRIVER"), config.Get("DATABASE_URL"))
 	if err != nil {
 		log.Fatal("cannot connect to db: ", err)
 	}
