@@ -1,0 +1,27 @@
+FROM golang:1.19 AS development
+WORKDIR /go/src/github.com/escalopa/gobank
+COPY gapi ./gapi
+COPY gateway ./gateway
+COPY grpc ./grpc
+COPY db ./db
+COPY token ./token
+COPY util ./util
+COPY go.mod go.sum ./
+RUN go mod download
+RUN go install github.com/cespare/reflex@latest
+CMD reflex -r '\.go$' -s -- sh -c 'go run gateway/cmd/main.go'
+
+FROM golang:alpine AS build
+WORKDIR /go/src/github.com/escalopa/gobank
+COPY gapi ./gapi
+COPY gateway ./gateway
+COPY db ./db
+COPY token ./token
+COPY util ./util
+COPY go.mod gom.sum ./
+RUN go build -o /go/bin/gateway gateway/cmd/main.go
+
+FROM alpine:3.7 AS production
+COPY --from=build /go/bin/gateway /go/bin/gateway
+EXPOSE 8000
+CMD ["/go/bin/gateway"]

@@ -3,14 +3,12 @@ version: "3.8"
 services:
   db:
     container_name: "gobank-db"
-    image: "postgres:12.8"
+    image: postgres:12.8
     restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=bank
+    env_file:
+      - ./.db.env
     ports:
-      - '5444:5432'
+      - '5432:5432'
     volumes:
       - db:/var/lib/postgresql/data
     healthcheck:
@@ -22,15 +20,56 @@ services:
   api:
     container_name: "gobank-api"
     build:
-      context: .
-      dockerfile: Dockerfile
+      dockerfile: deployments/Dockerfile-api
+      target: development
+    restart: always
+    volumes:
+      - .:/go/src/github.com/escalopa/gobank
     environment:
-      GIN_MODE: release
-      DB_CONNECTION_STRING: "postgresql://postgres:postgres@db:5432/bank?sslmode=disable"
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_DRIVER=${DATABASE_DRIVER}
+      - DATABASE_MIGRATION_PATH=${DATABASE_MIGRATION_PATH}
+      - SYMMETRIC_KEY=${SYMMETRIC_KEY}
     ports:
-      - "7000:7000"
       - "8000:8000"
-      - "9000:9000"
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  grpc:
+    container_name: "gobank-gapi"
+    build:
+      dockerfile: deployments/Dockerfile-gapi
+      target: development
+    restart: always
+    volumes:
+      - .:/go/src/github.com/escalopa/gobank
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_DRIVER=${DATABASE_DRIVER}
+      - DATABASE_MIGRATION_PATH=${DATABASE_MIGRATION_PATH}
+      - SYMMETRIC_KEY=${SYMMETRIC_KEY}
+    ports:
+      - "8001:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  gateway:
+    container_name: "gobank-gateway"
+    build:
+      dockerfile: deployments/Dockerfile-gateway
+      target: development
+    restart: always
+    volumes:
+      - .:/go/src/github.com/escalopa/gobank
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_DRIVER=${DATABASE_DRIVER}
+      - DATABASE_MIGRATION_PATH=${DATABASE_MIGRATION_PATH}
+      - SYMMETRIC_KEY=${SYMMETRIC_KEY}
+    ports:
+      - "8002:8000"
     depends_on:
       db:
         condition: service_healthy
