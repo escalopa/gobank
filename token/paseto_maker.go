@@ -2,7 +2,6 @@ package token
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/o1egl/paseto"
 )
@@ -20,8 +19,18 @@ func NewPasetoMaker(secretKey string) (Maker, error) {
 	return &PasetoMaker{paseto.NewV2(), []byte(secretKey)}, nil
 }
 
-func (pasetoMaker *PasetoMaker) CreateToken(username string, duration time.Duration) (string, *Payload, error) {
-	payload, err := NewPayload(username, duration)
+func (pasetoMaker *PasetoMaker) CreateToken(username string) (string, *Payload, error) {
+	payload, err := NewPayload(username, AccessTokenExpiration)
+	if err != nil {
+		return "", payload, err
+	}
+
+	token, err := pasetoMaker.paseto.Encrypt(pasetoMaker.symmetricKey, payload, nil)
+	return token, payload, err
+}
+
+func (pasetoMaker *PasetoMaker) CreateRefreshToken(username string) (string, *Payload, error) {
+	payload, err := NewPayload(username, RefreshTokenExpiration)
 	if err != nil {
 		return "", payload, err
 	}
