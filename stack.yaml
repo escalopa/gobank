@@ -7,6 +7,7 @@ services:
       - gobank_database_url
       - gobank_symmetric_key
       - gobank_database_migration_path
+      - gobank_database_driver
     environment:
       - DATABASE_DRIVER_FILE=/run/secrets/gobank_database_driver
       - DATABASE_URL_FILE=/run/secrets/gobank_database_url
@@ -23,6 +24,7 @@ services:
       - gobank_database_url
       - gobank_symmetric_key
       - gobank_database_migration_path
+      - gobank_database_driver
     environment:
       - DATABASE_DRIVER_FILE=/run/secrets/gobank_database_driver
       - DATABASE_URL_FILE=/run/secrets/gobank_database_url
@@ -39,6 +41,7 @@ services:
       - gobank_database_url
       - gobank_symmetric_key
       - gobank_database_migration_path
+      - gobank_database_driver
     environment:
       - DATABASE_DRIVER_FILE=/run/secrets/gobank_database_driver
       - DATABASE_URL_FILE=/run/secrets/gobank_database_url
