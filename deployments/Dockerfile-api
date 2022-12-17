@@ -18,10 +18,12 @@ COPY db ./db
 COPY token ./token
 COPY util ./util
 COPY grpc ./grpc
+COPY ./db/migration /migration
 COPY go.mod go.sum ./
 RUN go build -o /go/bin/api api/cmd/main.go
 
 FROM alpine:3.7 AS production
 COPY --from=build /go/bin/api /go/bin/api
+COPY --from=build /migration /migration
 EXPOSE 8000
 CMD ["/go/bin/api"]

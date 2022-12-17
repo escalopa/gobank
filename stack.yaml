@@ -9,16 +9,16 @@ services:
       - gobank_database_migration_path
       - gobank_database_driver
     environment:
-      - DATABASE_DRIVER_FILE=/run/secrets/gobank_database_driver
       - DATABASE_URL_FILE=/run/secrets/gobank_database_url
       - SYMMETRIC_KEY_FILE=/run/secrets/gobank_symmetric_key
-      - DATABASE_MIGRATION_PATH_FILE==/run/secrets/gobank_database_migration_path
+      - MIGRATION_DIRECTORY=file:///migration
+      - DATABASE_DRIVER=postgres
     ports:
       - "9001:8000"
     extra_hosts:
           - "host.docker.internal:host-gateway"
 
-  grpc:
+  gapi:
     image: dekuyo/gobank-gapi:0.1
     secrets:
       - gobank_database_url
@@ -26,10 +26,10 @@ services:
       - gobank_database_migration_path
       - gobank_database_driver
     environment:
-      - DATABASE_DRIVER_FILE=/run/secrets/gobank_database_driver
       - DATABASE_URL_FILE=/run/secrets/gobank_database_url
       - SYMMETRIC_KEY_FILE=/run/secrets/gobank_symmetric_key
-      - DATABASE_MIGRATION_PATH_FILE==/run/secrets/gobank_database_migration_path
+      - MIGRATION_DIRECTORY=file:///migration
+      - DATABASE_DRIVER=postgres
     ports:
       - "9002:8000"
     extra_hosts:
@@ -43,10 +43,10 @@ services:
       - gobank_database_migration_path
       - gobank_database_driver
     environment:
-      - DATABASE_DRIVER_FILE=/run/secrets/gobank_database_driver
       - DATABASE_URL_FILE=/run/secrets/gobank_database_url
       - SYMMETRIC_KEY_FILE=/run/secrets/gobank_symmetric_key
-      - DATABASE_MIGRATION_PATH_FILE==/run/secrets/gobank_database_migration_path
+      - MIGRATION_DIRECTORY=file:///migration
+      - DATABASE_DRIVER=postgres
     ports:
       - "9003:8000"
     extra_hosts:
@@ -56,6 +56,4 @@ secrets:
   gobank_database_url:
     external: true
   gobank_symmetric_key:
-    external: true
-  gobank_database_migration_path:
     external: true

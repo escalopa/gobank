@@ -17,7 +17,7 @@ func InitDatabase(config *util.Config) *sql.DB {
 		log.Fatalf("cannot open connection to db, err: %s", err)
 	}
 
-	err = migrateDB(conn, config.Get("DATABASE_MIGRATION_PATH"))
+	err = migrateDB(conn, config.Get("MIGRATION_DIRECTORY"))
 	if err != nil {
 		log.Fatalf("cannot migrate db, err: %s", err)
 	}
@@ -29,6 +29,10 @@ func migrateDB(conn *sql.DB, migrationURL string) error {
 	driver, err := postgres.WithInstance(conn, &postgres.Config{})
 	if err != nil {
 		return err
+	}
+
+	if migrationURL == "" {
+		migrationURL = "file://db/migration"
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
