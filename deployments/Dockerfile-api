@@ -17,7 +17,8 @@ COPY grpc ./grpc
 COPY db ./db
 COPY token ./token
 COPY util ./util
-COPY go.mod gom.sum ./
+COPY grpc ./grpc
+COPY go.mod go.sum ./
 RUN go build -o /go/bin/api api/cmd/main.go
 
 FROM alpine:3.7 AS production
