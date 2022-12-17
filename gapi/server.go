@@ -6,7 +6,7 @@ import (
 	"net"
 
 	db "github.com/escalopa/gobank/db/sqlc"
-	"github.com/escalopa/gobank/pb"
+	"github.com/escalopa/gobank/grpc/pb"
 	"github.com/escalopa/gobank/token"
 	"github.com/escalopa/gobank/util"
 	"google.golang.org/grpc"
@@ -14,14 +14,14 @@ import (
 )
 
 type GRPCServer struct {
-	config     util.Config
+	config     *util.Config
 	store      db.Store
 	tokenMaker token.Maker
 	pb.UnimplementedBankServiceServer
 }
 
-func NewServer(config util.Config, store db.Store) (*GRPCServer, error) {
-	maker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+func NewServer(config *util.Config, store db.Store) (*GRPCServer, error) {
+	maker, err := token.NewPasetoMaker(config.Get("SYMMETRIC_KEY"))
 	if err != nil {
 		return nil, fmt.Errorf("cannot create tokenMaker for grpcServer, %w", err)
 	}

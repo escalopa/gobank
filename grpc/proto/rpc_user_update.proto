@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "github.com/escalopa/gobank/pb";
+
+message UserUpdateRequest {
+  optional string full_name = 1;
+  optional string email = 2;
+  optional UserUpdatePassword password= 3;
+}
+
+message UserUpdatePassword {
+ string old_password = 3;
+ string new_password = 4;
+}

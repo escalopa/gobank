@@ -4,7 +4,7 @@ import (
 	"context"
 
 	db "github.com/escalopa/gobank/db/sqlc"
-	"github.com/escalopa/gobank/pb"
+	"github.com/escalopa/gobank/grpc/pb"
 	"github.com/escalopa/gobank/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -25,13 +25,13 @@ func (server *GRPCServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 	}
 
 	// Generate New Access Token for User
-	accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenExpiration)
+	accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "cannot create access token: %v", err)
 	}
 
 	// Generate New Access Token for User
-	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(user.Username, server.config.RefreshTokenExpiration)
+	refreshToken, refreshPayload, err := server.tokenMaker.CreateRefreshToken(user.Username)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "cannot create refresh token: %v", err)
 	}

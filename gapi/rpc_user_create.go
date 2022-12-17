@@ -4,7 +4,7 @@ import (
 	"context"
 
 	db "github.com/escalopa/gobank/db/sqlc"
-	"github.com/escalopa/gobank/pb"
+	"github.com/escalopa/gobank/grpc/pb"
 	"github.com/escalopa/gobank/util"
 	"github.com/lib/pq"
 	"google.golang.org/grpc/codes"
