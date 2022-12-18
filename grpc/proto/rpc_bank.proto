@@ -21,8 +21,6 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
           "gRPC-Gateway project";
         url:
           "https://github.com/escalopa/gobank";
-        email:
-          "none@example.com";
       };
   };
 };
