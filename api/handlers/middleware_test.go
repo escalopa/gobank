@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/escalopa/gobank/token"
 	"github.com/escalopa/gobank/util"
@@ -19,7 +18,6 @@ func addAuthHeader(
 	maker token.Maker,
 	authHeaderType string,
 	username string,
-	duration time.Duration,
 ) {
 	token, payload, err := maker.CreateToken(username)
 	require.NoError(t, err)
@@ -39,7 +37,7 @@ func TestAuthMiddleware(t *testing.T) {
 			name: "OK",
 			testCaseBase: testCaseBase{
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, util.RandomString(6), time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, util.RandomString(6))
 				},
 				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusOK, recorder.Code)
@@ -59,7 +57,7 @@ func TestAuthMiddleware(t *testing.T) {
 			name: "InvalidHeaderFormat",
 			testCaseBase: testCaseBase{
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, "", util.RandomString(6), time.Minute)
+					addAuthHeader(t, req, maker, "", util.RandomString(6))
 				},
 				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusUnauthorized, recorder.Code)
@@ -69,17 +67,7 @@ func TestAuthMiddleware(t *testing.T) {
 			name: "UnsupportedAuthType",
 			testCaseBase: testCaseBase{
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, "OAuth", util.RandomString(6), time.Minute)
-				},
-				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-					require.Equal(t, http.StatusUnauthorized, recorder.Code)
-				}},
-		},
-		{
-			name: "ExpiredToken",
-			testCaseBase: testCaseBase{
-				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, util.RandomString(6), -time.Minute)
+					addAuthHeader(t, req, maker, "OAuth", util.RandomString(6))
 				},
 				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusUnauthorized, recorder.Code)

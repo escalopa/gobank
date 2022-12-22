@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	mockdb "github.com/escalopa/gobank/db/mock"
 	db "github.com/escalopa/gobank/db/sqlc"
@@ -60,7 +59,7 @@ func TestCreateTransfer(t *testing.T) {
 					require.Equal(t, http.StatusOK, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username)
 				},
 			},
 		},
@@ -77,7 +76,7 @@ func TestCreateTransfer(t *testing.T) {
 					require.Equal(t, http.StatusBadRequest, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username)
 				},
 			},
 		},
@@ -90,7 +89,7 @@ func TestCreateTransfer(t *testing.T) {
 					require.Equal(t, http.StatusBadRequest, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username)
 				},
 			},
 		},
@@ -114,7 +113,7 @@ func TestCreateTransfer(t *testing.T) {
 					require.Equal(t, http.StatusInternalServerError, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user1.Username)
 				},
 			},
 		},

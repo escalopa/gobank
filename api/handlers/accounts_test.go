@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	mockdb "github.com/escalopa/gobank/db/mock"
 	db "github.com/escalopa/gobank/db/sqlc"
@@ -51,7 +50,7 @@ func TestCreateAccount(t *testing.T) {
 					requireBodyMatchAccount(t, recorder.Body, account)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
 				},
 			},
 		},
@@ -68,7 +67,7 @@ func TestCreateAccount(t *testing.T) {
 					require.Equal(t, http.StatusBadRequest, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
 				},
 			},
 		},
@@ -86,7 +85,7 @@ func TestCreateAccount(t *testing.T) {
 					require.Equal(t, http.StatusInternalServerError, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
 				},
 			},
 		},
@@ -164,7 +163,7 @@ func TestGetAccount(t *testing.T) {
 					requireBodyMatchAccount(t, recorder.Body, account)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
 				},
 			},
 		},
@@ -182,7 +181,7 @@ func TestGetAccount(t *testing.T) {
 					require.Equal(t, http.StatusNotFound, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
 				},
 			},
 		},
@@ -200,7 +199,7 @@ func TestGetAccount(t *testing.T) {
 					require.Equal(t, http.StatusInternalServerError, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
 				},
 			},
 		},
@@ -217,7 +216,7 @@ func TestGetAccount(t *testing.T) {
 					require.Equal(t, http.StatusBadRequest, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
 				},
 			},
 		},
@@ -284,7 +283,7 @@ func TestListAccount(t *testing.T) {
 					requireBodyMatchAccounts(t, recorder.Body, accounts)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
 				},
 			},
 		},
@@ -301,7 +300,7 @@ func TestListAccount(t *testing.T) {
 					require.Equal(t, http.StatusBadRequest, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
 				},
 			},
 		},
@@ -319,7 +318,7 @@ func TestListAccount(t *testing.T) {
 					require.Equal(t, http.StatusInternalServerError, recorder.Code)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
-					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username, time.Minute)
+					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
 				},
 			},
 		},
