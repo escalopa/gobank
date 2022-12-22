@@ -327,14 +327,112 @@ func TestListAccount(t *testing.T) {
 	for i := 0; i < len(testCases); i++ {
 		tc := testCases[i]
 
-		var buf bytes.Buffer
-		err := json.NewEncoder(&buf).Encode(tc.listAccountReqArg)
+		url := fmt.Sprintf("/api/accounts?page_id=%d&page_size=%d", tc.listAccountReqArg.PageID, tc.listAccountReqArg.PageSize)
+
+		req, err := http.NewRequest(http.MethodGet, url, nil)
 		require.NoError(t, err)
 
-		url := fmt.Sprintf("/api/accounts?page_id=%d&page_size=%d", tc.listAccountReqArg.PageID, tc.listAccountReqArg.PageSize)
-		reader := bytes.NewReader(buf.Bytes())
+		runServerTest(t, tc, req)
+	}
+}
 
-		req, err := http.NewRequest(http.MethodGet, url, reader)
+func TestDeleteAccount(t *testing.T) {
+	account := createRandomAccount(util.RandomOwner())
+
+	testCases := []struct {
+		name      string
+		accountId int64
+		testCaseBase
+	}{
+		{
+			name:      "OK",
+			accountId: account.ID,
+			testCaseBase: testCaseBase{
+				buildStubs: func(store *mockdb.MockStore) {
+					store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).Times(1).Return(account, nil)
+					store.EXPECT().DeleteAccount(gomock.Any(), gomock.Eq(account.ID)).Times(1).Return(nil)
+				},
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+					require.Equal(t, http.StatusOK, recorder.Code)
+				}, setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
+					addAuthHeader(t, req, maker, authorizationTypeBearer, account.Owner)
+				},
+			},
+		},
+		{
+			name:      "BadRequest",
+			accountId: 0,
+			testCaseBase: testCaseBase{
+				buildStubs: func(store *mockdb.MockStore) {
+					store.EXPECT().DeleteAccount(gomock.Any(), gomock.Eq(account.ID)).Times(0)
+				},
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+					require.Equal(t, http.StatusBadRequest, recorder.Code)
+				}, setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
+					addAuthHeader(t, req, maker, authorizationTypeBearer, account.Owner)
+				},
+			},
+		},
+		{
+			name:      "NotFound",
+			accountId: account.ID,
+			testCaseBase: testCaseBase{
+				buildStubs: func(store *mockdb.MockStore) {
+					store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).Times(1).Return(db.Account{}, sql.ErrNoRows)
+				},
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+					require.Equal(t, http.StatusNotFound, recorder.Code)
+				}, setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
+					addAuthHeader(t, req, maker, authorizationTypeBearer, account.Owner)
+				},
+			},
+		},
+		{
+			name:      "Unauthorized",
+			accountId: account.ID,
+			testCaseBase: testCaseBase{
+				buildStubs: func(store *mockdb.MockStore) {
+					store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).Times(1).Return(account, nil)
+				},
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+					require.Equal(t, http.StatusUnauthorized, recorder.Code)
+				}, setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
+					addAuthHeader(t, req, maker, authorizationTypeBearer, util.RandomOwner())
+				},
+			},
+		},
+		{
+			name:      "Unauthenticated",
+			accountId: account.ID,
+			testCaseBase: testCaseBase{
+				buildStubs: func(store *mockdb.MockStore) {},
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+					require.Equal(t, http.StatusUnauthorized, recorder.Code)
+				}, setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {},
+			},
+		},
+		{
+			name:      "InternalError",
+			accountId: account.ID,
+			testCaseBase: testCaseBase{
+				buildStubs: func(store *mockdb.MockStore) {
+					store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).Times(1).Return(account, nil)
+					store.EXPECT().DeleteAccount(gomock.Any(), gomock.Eq(account.ID)).Times(1).Return(sql.ErrConnDone)
+				},
+				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+					require.Equal(t, http.StatusInternalServerError, recorder.Code)
+				}, setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
+					addAuthHeader(t, req, maker, authorizationTypeBearer, account.Owner)
+				},
+			},
+		},
+	}
+
+	for i := 0; i < len(testCases); i++ {
+		tc := testCases[i]
+
+		url := fmt.Sprintf("/api/accounts/%d", tc.accountId)
+		req, err := http.NewRequest(http.MethodDelete, url, nil)
 		require.NoError(t, err)
 
 		runServerTest(t, tc, req)
