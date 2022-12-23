@@ -1,9 +1,9 @@
 -- name: CreateTransfer :one
 INSERT INTO transfers (
-        from_account_id,
-        to_account_id,
-        amount
-    )
+    from_account_id,
+    to_account_id,
+    amount
+  )
 VALUES ($1, $2, $3)
 RETURNING *;
 -- name: GetTransfer :one
@@ -14,7 +14,7 @@ LIMIT 1;
 -- name: ListTransfers :many
 SELECT *
 FROM transfers
-WHERE from_account_id = $1
-    OR to_account_id = $2
+WHERE from_account_id = sqlc.arg(account_id)
+  OR to_account_id = sqlc.arg(account_id)
 ORDER BY id
-LIMIT $3 OFFSET $4;
+LIMIT sqlc.arg(page_size) OFFSET sqlc.arg(page_id);

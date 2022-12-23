@@ -1,0 +1,602 @@
+definitions:
+  db.Account:
+    properties:
+      balance:
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: integer
+      is_deleted:
+        type: boolean
+      owner:
+        type: string
+    type: object
+  db.Entry:
+    properties:
+      account_id:
+        type: integer
+      amount:
+        description: can be negative or positive
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+    type: object
+  handlers.accountResponse:
+    properties:
+      balance:
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: integer
+    type: object
+  handlers.createAccountReq:
+    properties:
+      currency:
+        type: string
+    required:
+    - currency
+    type: object
+  handlers.createTransferReq:
+    properties:
+      amount:
+        minimum: 1
+        type: integer
+      from_account_id:
+        minimum: 1
+        type: integer
+      to_account_id:
+        minimum: 1
+        type: integer
+    required:
+    - amount
+    - from_account_id
+    - to_account_id
+    type: object
+  handlers.createUserReq:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      password:
+        maxLength: 16
+        minLength: 6
+        type: string
+      password_confirm:
+        type: string
+      username:
+        maxLength: 16
+        minLength: 6
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    - password_confirm
+    - username
+    type: object
+  handlers.loginUserReq:
+    properties:
+      password:
+        maxLength: 16
+        minLength: 6
+        type: string
+      username:
+        maxLength: 16
+        minLength: 6
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  handlers.loginUserRes:
+    properties:
+      access_expires_at:
+        type: string
+      access_token:
+        type: string
+      refresh_expires_at:
+        type: string
+      refresh_token:
+        type: string
+      session_id:
+        type: string
+      user:
+        $ref: '#/definitions/handlers.userResponse'
+    type: object
+  handlers.transferResponse:
+    properties:
+      amount:
+        type: integer
+      created_at:
+        type: string
+      from_account:
+        $ref: '#/definitions/db.Account'
+      from_entry:
+        $ref: '#/definitions/db.Entry'
+      id:
+        type: integer
+      to_account_id:
+        type: integer
+    type: object
+  handlers.updateUserReq:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      new_password:
+        maxLength: 16
+        minLength: 6
+        type: string
+      old_password:
+        maxLength: 16
+        minLength: 6
+        type: string
+    required:
+    - full_name
+    type: object
+  handlers.userResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      password_changed_at:
+        type: string
+      username:
+        type: string
+    type: object
+  response.JSON:
+    properties:
+      success:
+        type: boolean
+    type: object
+info:
+  contact:
+    email: ahmad.helaly.dev@gmail.com
+    name: Ahmad Helaly
+  description: Gobank is a SAAP that allows users to create accounts and transfer
+    money between them.
+  title: Gobank API
+  version: "1.0"
+paths:
+  /accounts:
+    delete:
+      description: deletes an account by id for the currently logged-in user
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      summary: deletes an account by id for the currently logged-in user
+      tags:
+      - accounts
+    get:
+      description: gets a list of accounts for the currently logged-in user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handlers.accountResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      summary: gets a list of accounts for the currently logged-in user
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      description: creates a new account for the currently logged-in user
+      parameters:
+      - description: Account to create
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createAccountReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.accountResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      summary: creates a new account for the currently logged-in user
+      tags:
+      - accounts
+  /accounts/{id}:
+    get:
+      description: gets an account by id
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.accountResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      summary: gets an account by id
+      tags:
+      - accounts
+  /accounts/del:
+    get:
+      description: gets a list of accounts for the currently logged-in user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/handlers.accountResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      tags:
+      - accounts
+  /accounts/res/{id}:
+    patch:
+      description: deletes an account by id for the currently logged-in user
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      summary: deletes an account by id for the currently logged-in user
+      tags:
+      - accounts
+  /transfers:
+    post:
+      consumes:
+      - application/json
+      description: creates a new transfer between two accounts
+      parameters:
+      - description: Transfer to create
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createTransferReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.transferResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      summary: creates a new transfer between two accounts
+      tags:
+      - transfers
+  /transfers/{id}:
+    get:
+      consumes:
+      - application/json
+      description: gets all transfers for an account
+      parameters:
+      - description: Account ID
+        in: path
+        name: accountID
+        required: true
+        type: integer
+      - description: Page ID
+        in: query
+        name: pageID
+        required: true
+        type: integer
+      - description: Page Size
+        in: query
+        name: PageSize
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.transferResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      summary: gets all transfers for an account
+      tags:
+      - transfers
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get current user info
+      parameters:
+      - description: Create user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.userResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      summary: Get current user info
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Update current user info
+      parameters:
+      - description: Update user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.updateUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.userResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      summary: Update current user info
+      tags:
+      - users
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Login user and return session
+      parameters:
+      - description: Login user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.loginUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.loginUserRes'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      summary: Login user and return session
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register user
+      parameters:
+      - description: Create user
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.userResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      summary: Register user
+      tags:
+      - users
+securityDefinitions:
+  bearerAuth:
+    description: Bearer <token>
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

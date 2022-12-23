@@ -68,5 +68,5 @@ func setupSwagger(mux *http.ServeMux, config *util.Config) {
 	}
 
 	swaggerFileHandler := http.FileServer(http.Dir(dir))
-	mux.Handle("/swagger/", http.StripPrefix("/swagger/", swaggerFileHandler))
+	mux.Handle("/docs/", http.StripPrefix("/docs/", swaggerFileHandler))
 }

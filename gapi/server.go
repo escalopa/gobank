@@ -14,9 +14,9 @@ import (
 )
 
 type GRPCServer struct {
-	config     *util.Config
-	store      db.Store
-	tokenMaker token.Maker
+	config *util.Config
+	db     db.Store
+	tm     token.Maker
 	pb.UnimplementedBankServiceServer
 }
 
@@ -26,7 +26,7 @@ func NewServer(config *util.Config, store db.Store) (*GRPCServer, error) {
 		return nil, fmt.Errorf("cannot create tokenMaker for grpcServer, %w", err)
 	}
 
-	grpcServer := &GRPCServer{config: config, tokenMaker: maker, store: store}
+	grpcServer := &GRPCServer{config: config, tm: maker, db: store}
 	return grpcServer, nil
 }
 

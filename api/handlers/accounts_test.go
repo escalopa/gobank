@@ -21,6 +21,7 @@ import (
 func TestCreateAccount(t *testing.T) {
 	user, _ := createRandomUser(t)
 	account := createRandomAccount(user.Username)
+	accRes := mapAccountToResponse(account)
 
 	arg := createAccountReq{
 		Currency: account.Currency,
@@ -47,7 +48,7 @@ func TestCreateAccount(t *testing.T) {
 				},
 				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusCreated, recorder.Code)
-					requireBodyMatchAccount(t, recorder.Body, account)
+					requireBodyMatchAccount(t, recorder.Body, accRes)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
 					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
@@ -117,18 +118,18 @@ func createRandomAccount(owner string) db.Account {
 	}
 }
 
-func requireBodyMatchAccount(t *testing.T, b *bytes.Buffer, account db.Account) {
+func requireBodyMatchAccount(t *testing.T, b *bytes.Buffer, account *accountResponse) {
 	data, err := io.ReadAll(b)
 	require.NoError(t, err)
 
-	var accountReceived db.Account
+	var accountReceived accountResponse
 	err = json.Unmarshal(data, &accountReceived)
 	require.NoError(t, err)
 
 	require.Equal(t, accountReceived, account)
 }
 
-func requireBodyMatchAccounts(t *testing.T, b *bytes.Buffer, accounts []db.Account) {
+func requireBodyMatchAccounts(t *testing.T, b *bytes.Buffer, accounts []*accountResponse) {
 	data, err := io.ReadAll(b)
 	require.NoError(t, err)
 
@@ -142,6 +143,7 @@ func requireBodyMatchAccounts(t *testing.T, b *bytes.Buffer, accounts []db.Accou
 func TestGetAccount(t *testing.T) {
 	user, _ := createRandomUser(t)
 	account := createRandomAccount(user.Username)
+	accountResponse := mapAccountToResponse(account)
 
 	testCases := []struct {
 		name      string
@@ -160,7 +162,7 @@ func TestGetAccount(t *testing.T) {
 				},
 				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusOK, recorder.Code)
-					requireBodyMatchAccount(t, recorder.Body, account)
+					requireBodyMatchAccount(t, recorder.Body, accountResponse)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
 					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
@@ -220,22 +222,13 @@ func TestGetAccount(t *testing.T) {
 				},
 			},
 		},
-		// {
-		// 	name:      "Unauthorized",
-		// 	accountId: 0,
-		// 	testCaseBase: testCaseBase{
-		// 		checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-		// 			require.Equal(t, http.StatusUnauthorized, recorder.Code)
-		// 		},
-		// 	},
-		// },
 	}
 
 	for i := 0; i < len(testCases); i++ {
 		tc := testCases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
-			url := fmt.Sprintf("/api/accounts/%d", tc.accountId)
+			url := "/api/accounts"
 
 			req, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
@@ -248,39 +241,25 @@ func TestGetAccount(t *testing.T) {
 func TestListAccount(t *testing.T) {
 	user, _ := createRandomUser(t)
 
-	accounts := []db.Account{
-		createRandomAccount(user.Username),
-		createRandomAccount(user.Username),
-		createRandomAccount(user.Username),
-	}
-
-	arg := listAccountReq{
-		PageID:   2,
-		PageSize: 5,
+	accountsResponses := []*accountResponse{
+		mapAccountToResponse(createRandomAccount(user.Username)),
+		mapAccountToResponse(createRandomAccount(user.Username)),
+		mapAccountToResponse(createRandomAccount(user.Username)),
 	}
 
 	testCases := []struct {
-		name              string
-		listAccountReqArg listAccountReq
+		name string
 		testCaseBase
 	}{
 		{
-			name:              "OK",
-			listAccountReqArg: arg,
+			name: "OK",
 			testCaseBase: testCaseBase{
 				buildStubs: func(store *mockdb.MockStore) {
-					store.EXPECT().
-						ListAccounts(gomock.Any(), gomock.Eq(db.ListAccountsParams{
-							Owner:  user.Username,
-							Limit:  arg.PageSize,
-							Offset: (arg.PageID - 1) * arg.PageSize,
-						})).
-						Times(1).
-						Return(accounts, nil)
+					store.EXPECT().GetAccounts(gomock.Any(), gomock.Eq(user.Username)).Times(1).Return(accountsResponses, nil)
 				},
 				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 					require.Equal(t, http.StatusOK, recorder.Code)
-					requireBodyMatchAccounts(t, recorder.Body, accounts)
+					requireBodyMatchAccounts(t, recorder.Body, accountsResponses)
 				},
 				setupAuth: func(t *testing.T, req *http.Request, maker token.Maker) {
 					addAuthHeader(t, req, maker, authorizationTypeBearer, user.Username)
@@ -288,12 +267,10 @@ func TestListAccount(t *testing.T) {
 			},
 		},
 		{
-			name:              "BadRequest",
-			listAccountReqArg: listAccountReq{},
+			name: "BadRequest",
 			testCaseBase: testCaseBase{
 				buildStubs: func(store *mockdb.MockStore) {
-					store.EXPECT().
-						ListAccounts(gomock.Any(), gomock.Any()).
+					store.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).
 						Times(0)
 				},
 				checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -305,12 +282,10 @@ func TestListAccount(t *testing.T) {
 			},
 		},
 		{
-			name:              "InternalError",
-			listAccountReqArg: arg,
+			name: "InternalError",
 			testCaseBase: testCaseBase{
 				buildStubs: func(store *mockdb.MockStore) {
-					store.EXPECT().
-						ListAccounts(gomock.Any(), gomock.Any()).
+					store.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).
 						Times(1).
 						Return([]db.Account{}, sql.ErrTxDone)
 				},
@@ -327,8 +302,7 @@ func TestListAccount(t *testing.T) {
 	for i := 0; i < len(testCases); i++ {
 		tc := testCases[i]
 
-		url := fmt.Sprintf("/api/accounts?page_id=%d&page_size=%d", tc.listAccountReqArg.PageID, tc.listAccountReqArg.PageSize)
-
+		url := "/api/accounts"
 		req, err := http.NewRequest(http.MethodGet, url, nil)
 		require.NoError(t, err)
 

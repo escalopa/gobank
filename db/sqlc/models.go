@@ -16,6 +16,7 @@ type Account struct {
 	Balance   int64     `json:"balance"`
 	Currency  string    `json:"currency"`
 	CreatedAt time.Time `json:"created_at"`
+	IsDeleted bool      `json:"is_deleted"`
 }
 
 type Entry struct {

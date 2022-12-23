@@ -83,7 +83,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 			authPath := "/auth"
 
-			server.router.GET(authPath, authMiddleware(server.tokenMaker), func(ctx *gin.Context) {
+			server.router.GET(authPath, authMiddleware(server.tm), func(ctx *gin.Context) {
 				ctx.JSON(http.StatusOK, gin.H{})
 			})
 
@@ -92,7 +92,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 			recorder := httptest.NewRecorder()
 
-			tc.setupAuth(t, req, server.tokenMaker)
+			tc.setupAuth(t, req, server.tm)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 

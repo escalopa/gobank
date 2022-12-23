@@ -35,4 +35,7 @@ proto:
 evans: 
 	evans --host localhost --port 9000 -r repl
 
-.PHONY: migrateUp migrateDown sqlc test server mock migrateCreate proto evans gendocs
+swagger:
+	swag fmt & swag init -d ./api/handlers/ -g ../cmd/main.go -o ./api/docs/ --parseDependency
+
+.PHONY: migrateUp migrateDown sqlc test server mock migrateCreate proto evans gendocs swagger

@@ -4,10 +4,22 @@ import (
 	"log"
 
 	"github.com/escalopa/gobank/api/handlers"
+
 	db "github.com/escalopa/gobank/db/sqlc"
 	"github.com/escalopa/gobank/util"
 )
 
+//	@title			Gobank API
+//	@version		1.0
+//	@description	Gobank is a SAAP that allows users to create accounts and transfer money between them.
+//
+//	@contact.email	ahmad.helaly.dev@gmail.com
+//	@contact.name	Ahmad Helaly
+
+//	@securityDefinitions.apikey	bearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				Bearer <token>
 func main() {
 	// Load config from environment variables
 	config := util.NewConfig()

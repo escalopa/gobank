@@ -15,6 +15,3 @@ SET hashed_password = coalesce(sqlc.narg('hashed_password'), hashed_password),
 WHERE username = sqlc.arg('username')
   AND coalesce(@hashed_password, @full_name, @email) IS NOT NULL
 RETURNING *;
--- name: DeleteUser :exec
-DELETE FROM "users" u
-WHERE username = $1;

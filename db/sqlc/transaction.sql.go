@@ -11,10 +11,10 @@ import (
 
 const createTransfer = `-- name: CreateTransfer :one
 INSERT INTO transfers (
-        from_account_id,
-        to_account_id,
-        amount
-    )
+    from_account_id,
+    to_account_id,
+    amount
+  )
 VALUES ($1, $2, $3)
 RETURNING id, from_account_id, to_account_id, amount, created_at
 `
@@ -62,25 +62,19 @@ const listTransfers = `-- name: ListTransfers :many
 SELECT id, from_account_id, to_account_id, amount, created_at
 FROM transfers
 WHERE from_account_id = $1
-    OR to_account_id = $2
+  OR to_account_id = $1
 ORDER BY id
-LIMIT $3 OFFSET $4
+LIMIT $3 OFFSET $2
 `
 
 type ListTransfersParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	ToAccountID   int64 `json:"to_account_id"`
-	Limit         int32 `json:"limit"`
-	Offset        int32 `json:"offset"`
+	AccountID int64 `json:"account_id"`
+	PageID    int32 `json:"page_id"`
+	PageSize  int32 `json:"page_size"`
 }
 
 func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error) {
-	rows, err := q.db.QueryContext(ctx, listTransfers,
-		arg.FromAccountID,
-		arg.ToAccountID,
-		arg.Limit,
-		arg.Offset,
-	)
+	rows, err := q.db.QueryContext(ctx, listTransfers, arg.AccountID, arg.PageID, arg.PageSize)
 	if err != nil {
 		return nil, err
 	}

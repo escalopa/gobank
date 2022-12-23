@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/escalopa/gobank/api/handlers/response"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,56 +19,55 @@ type renewAccessTokenRes struct {
 	AccessTokenExpiresAt time.Time `json:"access_expires_at"`
 }
 
-func (server *GinServer) renewAccessToken(ctx *gin.Context) {
+func (s *GinServer) renewAccessToken(ctx *gin.Context) {
 	var req renewAccessTokenReq
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+	if err := parseBody(ctx, &req); err != nil {
 		return
 	}
 
-	refreshPayload, err := server.tokenMaker.VerifyToken(req.RefreshToken)
+	refreshPayload, err := s.tm.VerifyToken(req.RefreshToken)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
 		return
 	}
 
-	session, err := server.store.GetSession(ctx, refreshPayload.ID)
+	session, err := s.db.GetSession(ctx, refreshPayload.ID)
 	if err != nil {
 		if err != nil {
 			if err == sql.ErrNoRows {
-				ctx.JSON(http.StatusNotFound, errorResponse(err))
+				ctx.JSON(http.StatusNotFound, response.Err(err))
 				return
 			}
 
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			ctx.JSON(http.StatusInternalServerError, response.Err(err))
 			return
 		}
 	}
 
 	if session.IsBlocked {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(ErrBlockedRefreshToken))
+		ctx.JSON(http.StatusUnauthorized, response.Err(ErrBlockedRefreshToken))
 		return
 	}
 
 	if time.Now().After(session.ExpiresAt) {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(ErrExpiredRefreshToken))
+		ctx.JSON(http.StatusUnauthorized, response.Err(ErrExpiredRefreshToken))
 		return
 	}
 
 	if session.Username != refreshPayload.Username {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(ErrMismatchedRefreshTokens))
+		ctx.JSON(http.StatusUnauthorized, response.Err(ErrMismatchedRefreshTokens))
 		return
 	}
 
 	if session.RefreshToken != req.RefreshToken {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(ErrMismatchedRefreshTokens))
+		ctx.JSON(http.StatusUnauthorized, response.Err(ErrMismatchedRefreshTokens))
 		return
 	}
 
 	// Generate New Access Token for User
-	accessToken, accessPayload, err := server.tokenMaker.CreateToken(session.Username)
+	accessToken, accessPayload, err := s.tm.CreateToken(session.Username)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
 		return
 	}
 

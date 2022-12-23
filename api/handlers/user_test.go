@@ -119,7 +119,7 @@ func TestCreateUser(t *testing.T) {
 	for i := 0; i < len(testCases); i++ {
 		tc := testCases[i]
 
-		url := "/api/users"
+		url := "/api/users/register"
 
 		data, err := json.Marshal(tc.userArg)
 		require.NoError(t, err)
