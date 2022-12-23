@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/escalopa/gobank/api/docs"
 
 	_ "github.com/escalopa/gobank/api/docs"
 	db "github.com/escalopa/gobank/db/sqlc"
@@ -32,7 +33,7 @@ func NewServer(config *util.Config, store db.Store) (*GinServer, error) {
 	gin.SetMode(gin.ReleaseMode)
 	s.setupValidator()
 	s.setupRouter()
-	s.setupSwagger()
+	s.setupSwagger(config)
 	return s, nil
 }
 
@@ -79,6 +80,11 @@ func (s *GinServer) setupRouter() {
 	s.router = router
 }
 
-func (s *GinServer) setupSwagger() {
+func (s *GinServer) setupSwagger(c *util.Config) {
+	if c.Get("ENV") == "development" {
+		docs.SwaggerInfo.BasePath = "/api"
+	} else {
+		docs.SwaggerInfo.BasePath = "/gobank/api"
+	}
 	s.router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }
