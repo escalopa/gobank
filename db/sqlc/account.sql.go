@@ -12,7 +12,7 @@ import (
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO accounts (owner, balance, currency)
 VALUES ($1, $2, $3)
-RETURNING id, owner, balance, currency, created_at
+RETURNING id, owner, balance, currency, created_at, is_deleted
 `
 
 type CreateAccountParams struct {
@@ -30,12 +30,14 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		&i.Balance,
 		&i.Currency,
 		&i.CreatedAt,
+		&i.IsDeleted,
 	)
 	return i, err
 }
 
 const deleteAccount = `-- name: DeleteAccount :exec
-DELETE FROM accounts
+UPDATE accounts
+SET is_deleted = true
 WHERE id = $1
 `
 
@@ -45,7 +47,7 @@ func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, owner, balance, currency, created_at
+SELECT id, owner, balance, currency, created_at, is_deleted
 FROM accounts
 WHERE id = $1
 LIMIT 1
@@ -60,26 +62,20 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 		&i.Balance,
 		&i.Currency,
 		&i.CreatedAt,
+		&i.IsDeleted,
 	)
 	return i, err
 }
 
-const listAccounts = `-- name: ListAccounts :many
-SELECT id, owner, balance, currency, created_at
+const getAccounts = `-- name: GetAccounts :many
+SELECT id, owner, balance, currency, created_at, is_deleted
 FROM accounts
 WHERE owner = $1
-ORDER BY id
-LIMIT $2 OFFSET $3
+  AND is_deleted = false
 `
 
-type ListAccountsParams struct {
-	Owner  string `json:"owner"`
-	Limit  int32  `json:"limit"`
-	Offset int32  `json:"offset"`
-}
-
-func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error) {
-	rows, err := q.db.QueryContext(ctx, listAccounts, arg.Owner, arg.Limit, arg.Offset)
+func (q *Queries) GetAccounts(ctx context.Context, owner string) ([]Account, error) {
+	rows, err := q.db.QueryContext(ctx, getAccounts, owner)
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +89,7 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 			&i.Balance,
 			&i.Currency,
 			&i.CreatedAt,
+			&i.IsDeleted,
 		); err != nil {
 			return nil, err
 		}
@@ -107,11 +104,59 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 	return items, nil
 }
 
+const getDeletedAccounts = `-- name: GetDeletedAccounts :many
+SELECT id, owner, balance, currency, created_at, is_deleted
+FROM accounts
+WHERE owner = $1
+  AND is_deleted = true
+`
+
+func (q *Queries) GetDeletedAccounts(ctx context.Context, owner string) ([]Account, error) {
+	rows, err := q.db.QueryContext(ctx, getDeletedAccounts, owner)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Account{}
+	for rows.Next() {
+		var i Account
+		if err := rows.Scan(
+			&i.ID,
+			&i.Owner,
+			&i.Balance,
+			&i.Currency,
+			&i.CreatedAt,
+			&i.IsDeleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const restoreAccount = `-- name: RestoreAccount :exec
+UPDATE accounts
+SET is_deleted = false
+WHERE id = $1
+`
+
+func (q *Queries) RestoreAccount(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, restoreAccount, id)
+	return err
+}
+
 const updateAccountBalance = `-- name: UpdateAccountBalance :one
 UPDATE accounts
 SET balance = balance + $1
 WHERE id = $2
-RETURNING id, owner, balance, currency, created_at
+RETURNING id, owner, balance, currency, created_at, is_deleted
 `
 
 type UpdateAccountBalanceParams struct {
@@ -128,6 +173,7 @@ func (q *Queries) UpdateAccountBalance(ctx context.Context, arg UpdateAccountBal
 		&i.Balance,
 		&i.Currency,
 		&i.CreatedAt,
+		&i.IsDeleted,
 	)
 	return i, err
 }

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/escalopa/gobank/api/handlers/response"
+
 	db "github.com/escalopa/gobank/db/sqlc"
 	"github.com/escalopa/gobank/token"
 	"github.com/escalopa/gobank/util"
@@ -13,6 +15,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
+
+type userResponse struct {
+	Username          string    `json:"username"`
+	FullName          string    `json:"full_name"`
+	Email             string    `json:"email"`
+	CreatedAt         time.Time `json:"created_at"`
+	PasswordChangedAt time.Time `json:"password_changed_at"`
+}
 
 type loginUserReq struct {
 	Username string `json:"username" binding:"required,min=6,max=16,alphanum"`
@@ -22,21 +32,31 @@ type loginUserReq struct {
 type loginUserRes struct {
 	SessionID             uuid.UUID    `json:"session_id"`
 	AccessToken           string       `json:"access_token"`
-	AccessTokenExpiresAt  time.Time    `json:"access_expires_at"`
 	RefreshToken          string       `json:"refresh_token"`
+	AccessTokenExpiresAt  time.Time    `json:"access_expires_at"`
 	RefreshTokenExpiresAt time.Time    `json:"refresh_expires_at"`
 	User                  userResponse `json:"user"`
 }
 
-func (server *GinServer) loginUser(ctx *gin.Context) {
+// Login godoc
+//
+//	@Summary		Login user and return session
+//	@Description	Login user and return session
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		loginUserReq	true	"Login user"
+//	@Success		200		{object}	response.JSON{data=loginUserRes}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Router			/users/login [post]
+func (s *GinServer) loginUser(ctx *gin.Context) {
 	var req loginUserReq
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+	if err := parseBody(ctx, &req); err != nil {
 		return
 	}
 
 	// Get User from DB by Username
-	user, found := server.getUserIfExists(ctx, req.Username)
+	user, found := s.getUserIfExists(ctx, req.Username)
 	if !found {
 		return
 	}
@@ -44,26 +64,26 @@ func (server *GinServer) loginUser(ctx *gin.Context) {
 	// Check User's Password
 	err := util.CheckHashedPassword(user.HashedPassword, req.Password)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		ctx.JSON(http.StatusUnauthorized, response.Err(err))
 		return
 	}
 
 	// Generate New Access Token for User
-	accessToken, accessPayload, err := server.tokenMaker.CreateToken(user.Username)
+	accessToken, accessPayload, err := s.tm.CreateToken(user.Username)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
 		return
 	}
 
 	// Generate New Refresh Token for User
-	refreshToken, refreshPayload, err := server.tokenMaker.CreateRefreshToken(user.Username)
+	refreshToken, refreshPayload, err := s.tm.CreateRefreshToken(user.Username)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
 		return
 	}
 
 	// Create new session for User
-	session, err := server.store.CreateSession(ctx, db.CreateSessionParams{
+	session, err := s.db.CreateSession(ctx, db.CreateSessionParams{
 		ID:           refreshPayload.ID,
 		Username:     req.Username,
 		RefreshToken: refreshToken,
@@ -73,7 +93,7 @@ func (server *GinServer) loginUser(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
 		return
 	}
 
@@ -83,7 +103,7 @@ func (server *GinServer) loginUser(ctx *gin.Context) {
 		AccessTokenExpiresAt:  accessPayload.ExpireAt,
 		RefreshToken:          refreshToken,
 		RefreshTokenExpiresAt: refreshPayload.ExpireAt,
-		User:                  fromUserToUserResponse(user),
+		User:                  mapUserToResponse(user),
 	}
 	ctx.JSON(http.StatusAccepted, res)
 }
@@ -96,10 +116,20 @@ type createUserReq struct {
 	PasswordConfirm string `json:"password_confirm" binding:"required,eqfield=Password"`
 }
 
-func (server *GinServer) createUser(ctx *gin.Context) {
+// Register godoc
+//
+//	@Summary		Register user
+//	@Description	Register user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		createUserReq	true	"Create user"
+//	@Success		200		{object}	response.JSON{data=userResponse}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Router			/users/register [post]
+func (s *GinServer) register(ctx *gin.Context) {
 	var req createUserReq
-	if err := ctx.BindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+	if err := parseBody(ctx, &req); err != nil {
 		return
 	}
 
@@ -109,7 +139,7 @@ func (server *GinServer) createUser(ctx *gin.Context) {
 		return
 	}
 
-	user, err := server.store.CreateUser(ctx, db.CreateUserParams{
+	user, err := s.db.CreateUser(ctx, db.CreateUserParams{
 		Username:       req.Username,
 		HashedPassword: hashPassword,
 		FullName:       req.FullName,
@@ -120,94 +150,106 @@ func (server *GinServer) createUser(ctx *gin.Context) {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
 			case "unique_violation":
-				ctx.JSON(http.StatusForbidden, errorResponse(err))
+				ctx.JSON(http.StatusForbidden, response.Err(err))
 				return
 			}
 		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
 		return
 	}
 
-	res := fromUserToUserResponse(user)
-	ctx.JSON(http.StatusCreated, res)
+	ctx.JSON(http.StatusCreated, response.Success(mapUserToResponse(&user)))
 }
 
-type userResponse struct {
-	Username          string    `json:"username"`
-	FullName          string    `json:"full_name"`
-	Email             string    `json:"email"`
-	CreatedAt         time.Time `json:"created_at"`
-	PasswordChangedAt time.Time `json:"password_changed_at"`
-}
-
-func (server *GinServer) getUser(ctx *gin.Context) {
+// Get User godoc
+//
+//	@Summary		Get current user info
+//	@Description	Get current user info
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Success		200		{object}	response.JSON{data=userResponse}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Security		bearerAuth
+//	@Router			/users [get]
+func (s *GinServer) getUser(ctx *gin.Context) {
 	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	user, found := server.getUserIfExists(ctx, payload.Username)
+	user, found := s.getUserIfExists(ctx, payload.Username)
 	if !found {
 		return
 	}
 
-	res := fromUserToUserResponse(user)
-	ctx.JSON(http.StatusOK, res)
+	ctx.JSON(http.StatusOK, response.Success(mapUserToResponse(user)))
 }
 
-func (server *GinServer) getUserIfExists(ctx *gin.Context, username string) (db.User, bool) {
-	user, err := server.store.GetUser(ctx, username)
+func (s *GinServer) getUserIfExists(ctx *gin.Context, username string) (*db.User, bool) {
+	user, err := s.db.GetUser(ctx, username)
 	if err != nil {
-		if err != nil {
-			if err == sql.ErrNoRows {
-				ctx.JSON(http.StatusNotFound, errorResponse(err))
-				return db.User{}, false
-			}
-
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-			return db.User{}, false
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, response.Err(err))
+			return nil, false
 		}
+
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
+		return nil, false
 	}
-	return user, true
+	return &user, true
 }
 
 type updateUserReq struct {
-	FullName    string `json:"full_name" binding:"alpha"`
+	FullName    string `json:"full_name" binding:"alpha,required"`
 	Email       string `json:"email" binding:"email"`
-	NewPassword string `json:"hashed_password"`
+	OldPassword string `json:"old_password" binding:"min=6,max=16,required_with=NewPassword"`
+	NewPassword string `json:"new_password" binding:"min=6,max=16,require"`
 }
 
-func (server *GinServer) updateUser(ctx *gin.Context) {
+// UpdateUser godoc
+//
+//	@Summary		Update current user info
+//	@Description	Update current user info
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		updateUserReq	true	"Update user"
+//	@Success		200		{object}	response.JSON{data=userResponse}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Security		bearerAuth
+//	@Router			/users [patch]
+func (s *GinServer) updateUser(ctx *gin.Context) {
 	var req updateUserReq
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+	if err := parseBody(ctx, &req); err != nil {
 		return
 	}
 
 	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	user, found := server.getUserIfExists(ctx, payload.Username)
+	user, found := s.getUserIfExists(ctx, payload.Username)
 	if !found {
 		return
 	}
 
 	var params db.UpdateUserParams
-
 	if req.Email == user.Email {
-		ctx.JSON(http.StatusBadRequest, errorResponse(ErrEmailSameAsOld))
+		ctx.JSON(http.StatusBadRequest, response.Err(ErrEmailSameAsOld))
 		return
 	}
 
-	if req.NewPassword != "" {
-		hashedPassword, err := util.GenerateHashPassword(req.NewPassword)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-			return
-		}
-		params.HashedPassword = sql.NullString{String: hashedPassword, Valid: true}
+	if err := util.CheckHashedPassword(req.OldPassword, user.HashedPassword); err != nil {
+		ctx.JSON(http.StatusBadRequest, response.Err(ErrPasswordWrong))
+		return
 	}
 
-	_, err := server.store.UpdateUser(ctx, params)
+	hashedPassword, err := util.GenerateHashPassword(req.NewPassword)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
+		return
+	}
+	params.HashedPassword = sql.NullString{String: hashedPassword, Valid: true}
+
+	dbUser, err := s.db.UpdateUser(ctx, params)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
 		return
 	}
 
-	res := fromUserToUserResponse(user)
-	ctx.JSON(http.StatusOK, res)
+	ctx.JSON(http.StatusOK, response.Success(mapUserToResponse(&dbUser)))
 }

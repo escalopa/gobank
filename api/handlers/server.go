@@ -2,20 +2,24 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/escalopa/gobank/api/docs"
 
+	_ "github.com/escalopa/gobank/api/docs"
 	db "github.com/escalopa/gobank/db/sqlc"
 	"github.com/escalopa/gobank/token"
 	"github.com/escalopa/gobank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type GinServer struct {
-	config     *util.Config
-	store      db.Store
-	tokenMaker token.Maker
-	router     *gin.Engine
+	config *util.Config
+	db     db.Store
+	tm     token.Maker
+	router *gin.Engine
 }
 
 func NewServer(config *util.Config, store db.Store) (*GinServer, error) {
@@ -24,55 +28,63 @@ func NewServer(config *util.Config, store db.Store) (*GinServer, error) {
 		return nil, fmt.Errorf("cannot create tokenMaker, %w", err)
 	}
 
-	server := &GinServer{config: config, tokenMaker: maker, store: store}
+	s := &GinServer{config: config, tm: maker, db: store}
 
 	gin.SetMode(gin.ReleaseMode)
-	server.setupValidator()
-	server.setupRouter()
-	return server, nil
+	s.setupValidator()
+	s.setupRouter()
+	s.setupSwagger(config)
+	return s, nil
 }
 
-func (server *GinServer) Start(address string) error {
-	if err := server.router.Run(address); err != nil {
+func (s *GinServer) Start(address string) error {
+	if err := s.router.Run(address); err != nil {
 		return err
 	}
 	return nil
+
 }
 
-func (server *GinServer) setupValidator() {
+func (s *GinServer) setupValidator() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", validCurrency)
 	}
 }
 
-func (server *GinServer) setupRouter() {
+func (s *GinServer) setupRouter() {
 	router := gin.Default()
 
-	authGroup := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	auth := router.Group("/").Use(authMiddleware(s.tm))
 
-	{
-		// Account Routes
-		authGroup.POST("/api/accounts", server.createAccount)
-		authGroup.GET("/api/accounts/:id", server.getAccount)
-		authGroup.GET("/api/accounts", server.listAccounts)
-		authGroup.DELETE("/api/accounts/:id", server.deleteAccounts)
+	// Account Routes
+	auth.POST("/api/accounts", s.createAccount)
+	auth.GET("/api/accounts/:id", s.getAccount)
+	auth.GET("/api/accounts", s.getAccounts)
+	auth.GET("/api/accounts/del", s.getDeletedAccounts)
+	auth.PATCH("/api/accounts/res/:id", s.restoreAccount)
+	auth.DELETE("/api/accounts/:id", s.deleteAccount)
 
-		// Transfer Routes
-		authGroup.POST("/api/transfers", server.createTransfer)
+	// Transfer Routes
+	auth.GET("/api/transfers/:id", s.getTransfers)
+	auth.POST("/api/transfers", s.createTransfer)
 
-		// User Routes
-		authGroup.GET("api/users/:username", server.getUser)
-		authGroup.PATCH("api/users", server.updateUser)
-	}
+	// User Routes
+	auth.GET("api/users", s.getUser)
+	auth.PATCH("api/users", s.updateUser)
 
 	// Unauthenticated Routes
-	router.POST("api/users", server.createUser)
-	router.POST("api/users/login", server.loginUser)
-	router.POST("api/users/renew", server.renewAccessToken)
+	router.POST("api/users/register", s.register)
+	router.POST("api/users/login", s.loginUser)
+	router.POST("api/users/renew", s.renewAccessToken)
 
-	server.router = router
+	s.router = router
 }
 
-func errorResponse(err error) gin.H {
-	return gin.H{"error": err.Error()}
+func (s *GinServer) setupSwagger(c *util.Config) {
+	if c.Get("ENV") == "development" {
+		docs.SwaggerInfo.BasePath = "/api"
+	} else {
+		docs.SwaggerInfo.BasePath = "/gobank/api"
+	}
+	s.router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }

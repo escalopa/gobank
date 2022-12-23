@@ -1,0 +1,29 @@
+FROM golang:1.19 AS development
+WORKDIR /go/src/github.com/escalopa/gobank
+COPY api ./api
+COPY grpc ./grpc
+COPY db ./db
+COPY token ./token
+COPY util ./util
+COPY go.mod go.sum ./
+RUN go mod download
+RUN go install github.com/cespare/reflex@latest
+CMD reflex -r '\.go$' -s -- sh -c 'go run api/cmd/main.go'
+
+FROM golang:alpine AS build
+WORKDIR /go/src/github.com/escalopa/gobank
+COPY api ./api
+COPY grpc ./grpc
+COPY db ./db
+COPY token ./token
+COPY util ./util
+COPY grpc ./grpc
+COPY ./db/migration /migration
+COPY go.mod go.sum ./
+RUN go build -o /go/bin/api api/cmd/main.go
+
+FROM alpine:3.7 AS production
+COPY --from=build /go/bin/api /go/bin/api
+COPY --from=build /migration /migration
+EXPOSE 8000
+CMD ["/go/bin/api"]

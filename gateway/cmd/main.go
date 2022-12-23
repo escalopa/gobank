@@ -48,6 +48,8 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/", grpcMux)
 
+	setupSwagger(mux, config)
+
 	listener, err := net.Listen("tcp", "0.0.0.0:8000")
 	if err != nil {
 		log.Fatalf("cannot listen on port 8000, err: %s", err)
@@ -57,4 +59,14 @@ func main() {
 	if err := http.Serve(listener, mux); err != nil {
 		log.Fatalf("cannot start HTTP server, err: %s", err)
 	}
+}
+
+func setupSwagger(mux *http.ServeMux, config *util.Config) {
+	dir := config.Get("SWAGGER_DIRECTORY")
+	if dir == "" {
+		dir = "./docs/swagger"
+	}
+
+	swaggerFileHandler := http.FileServer(http.Dir(dir))
+	mux.Handle("/docs/", http.StripPrefix("/docs/", swaggerFileHandler))
 }

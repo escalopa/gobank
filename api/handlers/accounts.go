@@ -2,7 +2,11 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
+	"time"
+
+	"github.com/escalopa/gobank/api/handlers/response"
 
 	db "github.com/escalopa/gobank/db/sqlc"
 	"github.com/escalopa/gobank/token"
@@ -10,21 +14,39 @@ import (
 	"github.com/lib/pq"
 )
 
+type accountResponse struct {
+	ID        int64     `json:"id"`
+	Balance   int64     `json:"balance"`
+	Currency  string    `json:"currency"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type createAccountReq struct {
 	Currency string `json:"currency" binding:"required,currency"`
 }
 
-func (server *GinServer) createAccount(ctx *gin.Context) {
+// CreateAccount godoc
+//
+//	@Summary		creates a new account for the currently logged-in user
+//	@Description	creates a new account for the currently logged-in user
+//	@Tags			accounts
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		createAccountReq	true	"Account to create"
+//	@Success		200		{object}	response.JSON{data=accountResponse}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Security		bearerAuth
+//	@Router			/accounts [post]
+func (s *GinServer) createAccount(ctx *gin.Context) {
 	var req createAccountReq
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+	if err := parseBody(ctx, &req); err != nil {
 		return
 	}
 
 	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	account, err := server.store.CreateAccount(ctx, db.CreateAccountParams{
+	account, err := s.db.CreateAccount(ctx, db.CreateAccountParams{
 		Owner:    payload.Username,
-		Balance:  0,
+		Balance:  1000,
 		Currency: req.Currency,
 	})
 
@@ -32,32 +54,33 @@ func (server *GinServer) createAccount(ctx *gin.Context) {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
 			case "foreign_key_violation", "unique_violation":
-				ctx.JSON(http.StatusForbidden, errorResponse(err))
+				ctx.JSON(http.StatusForbidden, response.Err(err))
 				return
 			}
 		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, account)
+	ctx.JSON(http.StatusCreated, response.Success(mapAccountToResponse(account)))
 }
 
 func isUserAccountOwner(ctx *gin.Context, account db.Account) bool {
 	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	log.Println(payload.Username, account.Owner)
 	return payload.Username == account.Owner
 }
 
-func (server *GinServer) isValidAccount(ctx *gin.Context, accountID int64) (db.Account, bool) {
-	account, err := server.store.GetAccount(ctx, accountID)
+func (s *GinServer) isValidAccount(ctx *gin.Context, accountID int64) (db.Account, bool) {
+	account, err := s.db.GetAccount(ctx, accountID)
 	if err != nil {
 		if err != nil {
 			if err == sql.ErrNoRows {
-				ctx.JSON(http.StatusNotFound, errorResponse(err))
+				ctx.JSON(http.StatusNotFound, response.Err(err))
 				return db.Account{}, false
 			}
 
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			ctx.JSON(http.StatusInternalServerError, response.Err(err))
 			return db.Account{}, false
 		}
 	}
@@ -68,14 +91,25 @@ type getAccountReq struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
-func (server *GinServer) getAccount(ctx *gin.Context) {
+// GetAccount godoc
+//
+//	@Summary		gets an account by id
+//	@Description	gets an account by id
+//	@Tags			accounts
+//	@Produce		json
+//	@Param			id		path		int64	true	"Account ID"
+//	@Success		200		{object}	response.JSON{data=accountResponse}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Security		bearerAuth
+//	@Router			/accounts/{id} [get]
+func (s *GinServer) getAccount(ctx *gin.Context) {
 	var req getAccountReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		ctx.JSON(http.StatusBadRequest, response.Err(err))
 		return
 	}
 
-	account, isValid := server.isValidAccount(ctx, req.ID)
+	account, isValid := s.isValidAccount(ctx, req.ID)
 	if !isValid {
 		return
 	}
@@ -85,63 +119,142 @@ func (server *GinServer) getAccount(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, account)
+	ctx.JSON(http.StatusOK, response.Success(mapAccountToResponse(account)))
 }
 
-type listAccountReq struct {
-	PageID   int32 `form:"page_id" binding:"required,min=1"`
-	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
-}
-
-func (server *GinServer) listAccounts(ctx *gin.Context) {
-	var req listAccountReq
-	if err := ctx.ShouldBindQuery(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
-
+// GetDeletedAccounts godoc
+//
+//	@Summary
+//	@Description	gets a list of accounts for the currently logged-in user
+//	@Tags			accounts
+//	@Produce		json
+//	@Success		200		{object}	response.JSON{data=[]accountResponse}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Security		bearerAuth
+//	@Router			/accounts/del [get]
+func (s *GinServer) getDeletedAccounts(ctx *gin.Context) {
 	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	accounts, err := server.store.ListAccounts(ctx, db.ListAccountsParams{
-		Owner:  payload.Username,
-		Limit:  req.PageSize,
-		Offset: (req.PageID - 1) * req.PageSize,
-	})
+	accounts, err := s.db.GetDeletedAccounts(ctx, payload.Username)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, accounts)
+	var resp []*accountResponse
+	for _, account := range accounts {
+		resp = append(resp, mapAccountToResponse(account))
+	}
+
+	ctx.JSON(http.StatusOK, response.Success(resp))
+}
+
+// GetAccounts godoc
+//
+//	@Summary		gets a list of accounts for the currently logged-in user
+//	@Description	gets a list of accounts for the currently logged-in user
+//	@Tags			accounts
+//	@Produce		json
+//	@Success		200		{object}	response.JSON{data=[]accountResponse}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Security		bearerAuth
+//	@Router			/accounts [get]
+func (s *GinServer) getAccounts(ctx *gin.Context) {
+	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	accounts, err := s.db.GetAccounts(ctx, payload.Username)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
+		return
+	}
+
+	var accountResponses []*accountResponse
+	for _, account := range accounts {
+		accountResponses = append(accountResponses, mapAccountToResponse(account))
+	}
+
+	ctx.JSON(http.StatusOK, response.Success(accountResponses))
 }
 
 type deleteAccountReq struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
-func (server *GinServer) deleteAccounts(ctx *gin.Context) {
+// DeleteAccount godoc
+//
+//	@Summary		deletes an account by id for the currently logged-in user
+//	@Description	deletes an account by id for the currently logged-in user
+//	@Tags			accounts
+//	@Produce		json
+//	@Param			id		path		int64	true	"Account ID"
+//	@Success		200		{object}	response.JSON{data=int64}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Security		bearerAuth
+//	@Router			/accounts/{id} [delete]
+func (s *GinServer) deleteAccount(ctx *gin.Context) {
 	var req deleteAccountReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		ctx.JSON(http.StatusBadRequest, response.Err(err))
 		return
 	}
 
-	account, isValid := server.isValidAccount(ctx, req.ID)
+	account, isValid := s.isValidAccount(ctx, req.ID)
 	if !isValid {
 		return
 	}
 
 	if !isUserAccountOwner(ctx, account) {
-		ctx.JSON(http.StatusUnauthorized, ErrNotAccountOwner)
+		ctx.JSON(http.StatusUnauthorized, response.Err(ErrNotAccountOwner))
 		return
 	}
 
-	err := server.store.DeleteAccount(ctx, req.ID)
+	err := s.db.DeleteAccount(ctx, req.ID)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"id": req.ID})
+	ctx.JSON(http.StatusOK, response.Success(account.ID))
+}
+
+type restoreAccountReq struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
+// RestoreAccount godoc
+//
+//	@Summary		deletes an account by id for the currently logged-in user
+//	@Description	deletes an account by id for the currently logged-in user
+//	@Tags			accounts
+//	@Produce		json
+//	@Param			id		path		int64	true	"Account ID"
+//	@Success		200		{object}	response.JSON{data=int64}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Security		bearerAuth
+//	@Router			/accounts/res/{id} [patch]
+func (s *GinServer) restoreAccount(ctx *gin.Context) {
+	var req restoreAccountReq
+	if err := parseUri(ctx, &req); err != nil {
+		return
+	}
+
+	account, isValid := s.isValidAccount(ctx, req.ID)
+	if !isValid {
+		return
+	}
+
+	if !isUserAccountOwner(ctx, account) {
+		ctx.JSON(http.StatusUnauthorized, response.Err(ErrNotAccountOwner))
+		return
+	}
+
+	err := s.db.RestoreAccount(ctx, req.ID)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.Success(account.ID))
 }

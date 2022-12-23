@@ -50,7 +50,7 @@ func runServerTest(t *testing.T, tc testCase, req *http.Request) {
 	server := newTestServer(t, store)
 	recorder := httptest.NewRecorder()
 
-	tc.setupAuthMethod(t, req, server.tokenMaker)
+	tc.setupAuthMethod(t, req, server.tm)
 	server.router.ServeHTTP(recorder, req)
 	tc.checkResponseMethod(t, recorder)
 }

@@ -34,7 +34,7 @@ func (server *GRPCServer) authenticateUser(ctx context.Context) (payload *token.
 	}
 
 	// verify access token
-	payload, err = server.tokenMaker.VerifyToken(authorizationHeader[1])
+	payload, err = server.tm.VerifyToken(authorizationHeader[1])
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify token: %s", err)
 	}
