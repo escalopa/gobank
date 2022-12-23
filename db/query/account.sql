@@ -6,7 +6,6 @@ RETURNING *;
 SELECT *
 FROM accounts
 WHERE id = $1
-  AND is_deleted = false
 LIMIT 1;
 -- name: GetAccounts :many
 SELECT *

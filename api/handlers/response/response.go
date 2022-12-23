@@ -3,7 +3,7 @@ package response
 type JSON struct {
 	Success bool        `json:"success"`
 	Data    interface{} `json:"data,omitempty" swaggerignore:"true"`
-	Error   Error       `json:"error,omitempty" swaggerignore:"true"`
+	Error   *Error      `json:"error,omitempty" swaggerignore:"true"`
 }
 
 type Error struct {
@@ -15,5 +15,5 @@ func Success(data interface{}) JSON {
 }
 
 func Err(err error) JSON {
-	return JSON{Success: false, Error: Error{Error: err.Error()}}
+	return JSON{Success: false, Error: &Error{Error: err.Error()}}
 }

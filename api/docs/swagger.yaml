@@ -112,6 +112,20 @@ definitions:
       user:
         $ref: '#/definitions/handlers.userResponse'
     type: object
+  handlers.renewAccessTokenReq:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  handlers.renewAccessTokenRes:
+    properties:
+      access_expires_at:
+        type: string
+      access_token:
+        type: string
+    type: object
   handlers.transferResponse:
     properties:
       amount:
@@ -172,39 +186,6 @@ info:
   version: "1.0"
 paths:
   /accounts:
-    delete:
-      description: deletes an account by id for the currently logged-in user
-      parameters:
-      - description: Account ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.JSON'
-            - properties:
-                data:
-                  type: integer
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.JSON'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.JSON'
-      security:
-      - bearerAuth: []
-      summary: deletes an account by id for the currently logged-in user
-      tags:
-      - accounts
     get:
       description: gets a list of accounts for the currently logged-in user
       produces:
@@ -271,6 +252,39 @@ paths:
       tags:
       - accounts
   /accounts/{id}:
+    delete:
+      description: deletes an account by id for the currently logged-in user
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      security:
+      - bearerAuth: []
+      summary: deletes an account by id for the currently logged-in user
+      tags:
+      - accounts
     get:
       description: gets an account by id
       parameters:
@@ -412,17 +426,17 @@ paths:
       parameters:
       - description: Account ID
         in: path
-        name: accountID
+        name: id
         required: true
         type: integer
       - description: Page ID
         in: query
-        name: pageID
+        name: page_id
         required: true
         type: integer
       - description: Page Size
         in: query
-        name: PageSize
+        name: page_size
         required: true
         type: integer
       produces:
@@ -455,13 +469,6 @@ paths:
       consumes:
       - application/json
       description: Get current user info
-      parameters:
-      - description: Create user
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.createUserReq'
       produces:
       - application/json
       responses:
@@ -591,6 +598,39 @@ paths:
           schema:
             $ref: '#/definitions/response.JSON'
       summary: Register user
+      tags:
+      - users
+  /users/renew:
+    post:
+      description: renews an access token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.renewAccessTokenReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSON'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.renewAccessTokenRes'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.JSON'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.JSON'
+      summary: renews an access token
       tags:
       - users
 securityDefinitions:

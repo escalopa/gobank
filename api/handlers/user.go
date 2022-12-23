@@ -168,7 +168,6 @@ func (s *GinServer) register(ctx *gin.Context) {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		createUserReq	true	"Create user"
 //	@Success		200		{object}	response.JSON{data=userResponse}
 //	@Failure		400,500	{object}	response.JSON{}
 //	@Security		bearerAuth

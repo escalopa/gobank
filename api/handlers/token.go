@@ -19,6 +19,16 @@ type renewAccessTokenRes struct {
 	AccessTokenExpiresAt time.Time `json:"access_expires_at"`
 }
 
+// RenewAccessToken godoc
+//
+//	@Summary		renews an access token
+//	@Description	renews an access token
+//	@Tags			users
+//	@Produce		json
+//	@Param			body	body		renewAccessTokenReq	true	"Refresh token"
+//	@Success		200		{object}	response.JSON{data=renewAccessTokenRes}
+//	@Failure		400,500	{object}	response.JSON{}
+//	@Router			/users/renew [post]
 func (s *GinServer) renewAccessToken(ctx *gin.Context) {
 	var req renewAccessTokenReq
 	if err := parseBody(ctx, &req); err != nil {
@@ -33,15 +43,13 @@ func (s *GinServer) renewAccessToken(ctx *gin.Context) {
 
 	session, err := s.db.GetSession(ctx, refreshPayload.ID)
 	if err != nil {
-		if err != nil {
-			if err == sql.ErrNoRows {
-				ctx.JSON(http.StatusNotFound, response.Err(err))
-				return
-			}
-
-			ctx.JSON(http.StatusInternalServerError, response.Err(err))
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, response.Err(err))
 			return
 		}
+
+		ctx.JSON(http.StatusInternalServerError, response.Err(err))
+		return
 	}
 
 	if session.IsBlocked {
@@ -71,9 +79,6 @@ func (s *GinServer) renewAccessToken(ctx *gin.Context) {
 		return
 	}
 
-	res := renewAccessTokenRes{
-		AccessToken:          accessToken,
-		AccessTokenExpiresAt: accessPayload.ExpireAt,
-	}
-	ctx.JSON(http.StatusAccepted, res)
+	res := renewAccessTokenRes{AccessToken: accessToken, AccessTokenExpiresAt: accessPayload.ExpireAt}
+	ctx.JSON(http.StatusAccepted, response.JSON{Data: res})
 }

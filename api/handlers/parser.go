@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/escalopa/gobank/api/handlers/response"
 
@@ -18,19 +19,37 @@ func parseBody(ctx *gin.Context, obj interface{}) error {
 }
 
 func parseUri(ctx *gin.Context, obj interface{}) error {
-	err := ctx.ShouldBindUri(obj)
-	if err != nil {
+	if err := ctx.ShouldBindUri(obj); err != nil {
 		ctx.JSON(http.StatusBadRequest, response.Err(err))
 		return err
 	}
 	return nil
 }
 
-func parseQuery(ctx *gin.Context, obj interface{}) error {
-	err := ctx.ShouldBindQuery(obj)
+type paginationQuery struct {
+	Offset int32 `form:"offset" binding:"required"`
+	Limit  int32 `form:"limit" binding:"required"`
+}
+
+func parsePagination(ctx *gin.Context) (*paginationQuery, error) {
+	pgQuery := &paginationQuery{}
+
+	offset := ctx.DefaultQuery("offset", "1")
+	limit := ctx.DefaultQuery("limit", "1")
+
+	limit32, err := strconv.Atoi(limit)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.Err(err))
-		return err
+		return nil, err
 	}
-	return nil
+	offset32, err := strconv.Atoi(offset)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.Err(err))
+		return nil, err
+	}
+
+	pgQuery.Limit = int32(limit32)
+	pgQuery.Offset = int32(offset32)
+
+	return pgQuery, nil
 }

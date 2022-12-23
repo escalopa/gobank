@@ -50,7 +50,6 @@ const getAccount = `-- name: GetAccount :one
 SELECT id, owner, balance, currency, created_at, is_deleted
 FROM accounts
 WHERE id = $1
-  AND is_deleted = false
 LIMIT 1
 `
 

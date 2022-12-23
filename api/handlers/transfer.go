@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -111,8 +112,6 @@ func (s *GinServer) validateTransfer(ctx *gin.Context, accountID1, accountID2 in
 
 type getTransferReq struct {
 	AccountID int64 `uri:"id" binding:"required,min=1"`
-	PageID    int32 `query:"page_id" binding:"required,min=1"`
-	PageSize  int32 `query:"page_size" binding:"required,min=1"`
 }
 
 // GetTransfers godoc
@@ -122,30 +121,40 @@ type getTransferReq struct {
 //	@Tags			transfers
 //	@Accept			json
 //	@Produce		json
-//	@Param			accountID	path		int64	true	"Account ID"
-//	@Param			pageID		query		int32	true	"Page ID"
-//	@Param			PageSize	query		int32	true	"Page Size"
+//	@Param			id			path		int64	true	"Account ID"
+//	@Param			page_id		query		int32	true	"Page ID"
+//	@Param			page_size	query		int32	true	"Page Size"
 //	@Success		200			{object}	response.JSON{data=transferResponse}
 //	@Failure		400,500		{object}	response.JSON{}
 //	@Security		bearerAuth
 //	@Router			/transfers/{id} [get]
 func (s *GinServer) getTransfers(ctx *gin.Context) {
 	var req getTransferReq
+	var pgQuery *paginationQuery
+	var err error
+
 	if err := parseUri(ctx, &req); err != nil {
 		return
 	}
 
-	if err := parseQuery(ctx, &req); err != nil {
+	if pgQuery, err = parsePagination(ctx); err != nil {
+		ctx.JSON(http.StatusBadRequest, response.Err(err))
 		return
 	}
 
-	_, isValid := s.isValidAccount(ctx, req.AccountID)
-	if !isValid {
+	account, ok := s.isValidAccount(ctx, req.AccountID)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, response.Err(errors.New("invalid account id")))
+		return
+	}
+
+	if !isUserAccountOwner(ctx, account) {
+		ctx.JSON(http.StatusUnauthorized, response.Err(ErrNotAccountOwner))
 		return
 	}
 
 	transfers, err := s.db.ListTransfers(ctx, db.ListTransfersParams{
-		AccountID: req.AccountID, PageSize: req.PageSize, PageID: (req.PageID - 1) * req.PageSize,
+		AccountID: req.AccountID, PageSize: pgQuery.Limit, PageID: (pgQuery.Offset - 1) * pgQuery.Offset,
 	})
 
 	if err != nil {

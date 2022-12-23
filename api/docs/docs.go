@@ -130,62 +130,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ],
-                "description": "deletes an account by id for the currently logged-in user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "accounts"
-                ],
-                "summary": "deletes an account by id for the currently logged-in user",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Account ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.JSON"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.JSON"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.JSON"
-                        }
-                    }
-                }
             }
         },
         "/accounts/del": {
@@ -353,6 +297,62 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "description": "deletes an account by id for the currently logged-in user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "deletes an account by id for the currently logged-in user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.JSON"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSON"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSON"
+                        }
+                    }
+                }
             }
         },
         "/transfers": {
@@ -440,21 +440,21 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Account ID",
-                        "name": "accountID",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
                         "description": "Page ID",
-                        "name": "pageID",
+                        "name": "page_id",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
                         "description": "Page Size",
-                        "name": "PageSize",
+                        "name": "page_size",
                         "in": "query",
                         "required": true
                     }
@@ -511,17 +511,6 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "Get current user info",
-                "parameters": [
-                    {
-                        "description": "Create user",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.createUserReq"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -732,6 +721,61 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/renew": {
+            "post": {
+                "description": "renews an access token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "renews an access token",
+                "parameters": [
+                    {
+                        "description": "Refresh token",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.renewAccessTokenReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.JSON"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/handlers.renewAccessTokenRes"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSON"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.JSON"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -896,6 +940,28 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/handlers.userResponse"
+                }
+            }
+        },
+        "handlers.renewAccessTokenReq": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.renewAccessTokenRes": {
+            "type": "object",
+            "properties": {
+                "access_expires_at": {
+                    "type": "string"
+                },
+                "access_token": {
+                    "type": "string"
                 }
             }
         },

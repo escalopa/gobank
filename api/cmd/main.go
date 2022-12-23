@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/escalopa/gobank/api/handlers"
@@ -33,8 +34,9 @@ func main() {
 		log.Fatalf("cannot create HTTP server, err: %s", err)
 	}
 
-	log.Printf("HTTP server is listening on %s", "8000")
-	if err := ginServer.Start("0.0.0.0:8000"); err != nil {
-		log.Fatalf("cannot start server address: %s, err: %s", "8000", err)
+	port := "8000"
+	log.Printf("HTTP server is listening on %s", port)
+	if err := ginServer.Start(fmt.Sprintf("0.0.0.0:%s", port)); err != nil {
+		log.Fatalf("cannot start server address: %s, err: %s", port, err)
 	}
 }

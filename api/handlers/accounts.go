@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"time"
 
@@ -45,7 +46,7 @@ func (s *GinServer) createAccount(ctx *gin.Context) {
 	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	account, err := s.db.CreateAccount(ctx, db.CreateAccountParams{
 		Owner:    payload.Username,
-		Balance:  0,
+		Balance:  1000,
 		Currency: req.Currency,
 	})
 
@@ -66,6 +67,7 @@ func (s *GinServer) createAccount(ctx *gin.Context) {
 
 func isUserAccountOwner(ctx *gin.Context, account db.Account) bool {
 	payload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	log.Println(payload.Username, account.Owner)
 	return payload.Username == account.Owner
 }
 
@@ -188,7 +190,7 @@ type deleteAccountReq struct {
 //	@Success		200		{object}	response.JSON{data=int64}
 //	@Failure		400,500	{object}	response.JSON{}
 //	@Security		bearerAuth
-//	@Router			/accounts [delete]
+//	@Router			/accounts/{id} [delete]
 func (s *GinServer) deleteAccount(ctx *gin.Context) {
 	var req deleteAccountReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
@@ -202,7 +204,7 @@ func (s *GinServer) deleteAccount(ctx *gin.Context) {
 	}
 
 	if !isUserAccountOwner(ctx, account) {
-		ctx.JSON(http.StatusUnauthorized, ErrNotAccountOwner)
+		ctx.JSON(http.StatusUnauthorized, response.Err(ErrNotAccountOwner))
 		return
 	}
 
@@ -243,7 +245,7 @@ func (s *GinServer) restoreAccount(ctx *gin.Context) {
 	}
 
 	if !isUserAccountOwner(ctx, account) {
-		ctx.JSON(http.StatusUnauthorized, ErrNotAccountOwner)
+		ctx.JSON(http.StatusUnauthorized, response.Err(ErrNotAccountOwner))
 		return
 	}
 
